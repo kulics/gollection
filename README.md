@@ -1,1 +1,3 @@
-# go-collections
+# gollections
+
+A go generic collections
