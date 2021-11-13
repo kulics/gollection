@@ -18,9 +18,6 @@ func main() {
 	fmt.Println(list.get(1))
 	list.set(1, 5)
 	fmt.Println(list.data)
-	list.foreach(func (it int)  {
-		fmt.Println(it)
-	})
 
 	list = emptyArrayList[int]()
 	for i := 0; i < 10; i ++ {
@@ -28,7 +25,7 @@ func main() {
 	}
 	fmt.Println(list.data)
 
-	fmt.Println(count[int](list))
+	fmt.Println(count[int](list.iter()))
 
 	count := sum(mapto(func(it int) int { 
 		return it * 2 
@@ -38,7 +35,7 @@ func main() {
 		} else { 
 			return false 
 		}
-	})(list)))
+	})(list.iter())))
 	fmt.Println(count)
 }
 
@@ -88,14 +85,43 @@ func (a *arraylist[T]) isEmpty() bool {
 	return len(a.data)== 0
 }
 
-func (a *arraylist[T]) foreach(action func(T)) {
-	for _, v := range a.data {
-		action(v)
+func (a *arraylist[T]) iter() iterator[T] {
+	return &arraylistIterator[T]{-1, *a}
+}
+
+type arraylistIterator[T any] struct {
+	index int
+	source arraylist[T]
+}
+
+func (a *arraylistIterator[T]) next() option[T] {
+	if a.index < a.source.size()-1 {
+		a.index++
+		return some[T](a.source.data[a.index])
 	}
+	return none[T]()
 }
 
 type iterator[T any] interface {
-	foreach(action func(T))
+	next() option[T]
+}
+
+type iterable[T any] interface {
+	iter() iterator[T]
+}
+
+type option[T any] struct {
+	val T
+	ok bool
+}
+
+func some[T any](value T) option[T] {
+	return option[T]{value, true}
+}
+
+func none[T any]() option[T] {
+	var empty T
+	return option[T]{empty, false}
 }
 
 type mapStream[T any, R any] struct {
@@ -103,10 +129,11 @@ type mapStream[T any, R any] struct {
 	iter iterator[T]
 }
 
-func (m mapStream[T, R]) foreach(action func(R)) {
-	m.iter.foreach(func(it T) {
-		action(m.transform(it))
-	})
+func (m mapStream[T, R]) next() option[R] {
+	if v := m.iter.next(); v.ok {
+		return some[R](m.transform(v.val))
+	}
+	return none[R]()
 }
 
 func mapto[T any, R any](transform func(T) R) func(iterator[T]) iterator[R] {
@@ -120,12 +147,13 @@ type filterStream[T any] struct {
 	iter iterator[T]
 }
 
-func (f filterStream[T]) foreach(action func(T)) {
-	f.iter.foreach(func(it T) {
-		if f.predecate(it) {
-			action(it)
+func (f filterStream[T]) next() option[T] {
+	for v := f.iter.next(); v.ok; v = f.iter.next() {
+		if f.predecate(v.val) {
+			return v
 		}
-	})
+	}
+	return none[T]()
 }
 
 func filter[T any](predecate func(T) bool) func(iterator[T]) iterator[T] {
@@ -134,51 +162,194 @@ func filter[T any](predecate func(T) bool) func(iterator[T]) iterator[T] {
 	}
 }
 
+type limitStream[T any] struct {
+	limit int
+	index int
+	iter iterator[T]
+}
+
+func (l *limitStream[T]) next() option[T] {
+	if v := l.iter.next(); v.ok && l.index < l.limit {
+		l.index++
+		return v
+	}
+	return none[T]()
+}
+
+func limit[T any](count int) func(iterator[T]) iterator[T] {
+	return func(it iterator[T]) iterator[T] {
+		return &limitStream[T]{count, 0, it}
+	}
+}
+
+type skipStream[T any] struct {
+	skip int
+	index int
+	iter iterator[T]
+}
+
+func (l *skipStream[T]) next() option[T] {
+	for v := l.iter.next(); v.ok; v = l.iter.next() {
+		if l.index < l.skip {
+			l.index++
+			continue
+		}
+		return v
+	}
+	return none[T]()
+}
+
+func skip[T any](count int) func(iterator[T]) iterator[T] {
+	return func(it iterator[T]) iterator[T] {
+		return &skipStream[T]{count, 0, it}
+	}
+}
+
+type stepStream[T any] struct {
+	step int
+	index int
+	iter iterator[T]
+}
+
+func (l *stepStream[T]) next() option[T] {
+	for v := l.iter.next(); v.ok; v = l.iter.next() {
+		if l.index < l.step {
+			l.index++
+			continue
+		}
+		l.index = 0
+		return v
+	}
+	return none[T]()
+}
+
+func step[T any](count int) func(iterator[T]) iterator[T] {
+	return func(it iterator[T]) iterator[T] {
+		return &stepStream[T]{count, 0, it}
+	}
+}
+
+type concatStream[T any] struct {
+	first option[iterator[T]]
+	last iterator[T]
+}
+
+func (l *concatStream[T]) next() option[T] {
+	if l.first.ok {
+		if v := l.first.val.next(); v.ok {
+			return v
+		}
+		l.first = none[iterator[T]]()
+		return l.next()
+	}
+	return l.last.next()
+}
+
+func concat[T any](left iterator[T]) func (iterator[T]) iterator[T] {
+	return func(right iterator[T]) iterator[T] {
+		return &concatStream[T]{some(left), right}
+	}
+}
+
 type number interface {
 	type int, int64, int32, int16, int8, uint64, uint32, uint16, uint8, float64, float32
 }
 
 func sum[T number](iter iterator[T]) T {
-	var value T
-	iter.foreach(func(it T) {
-		value += it
-	})
-	return value
-}
-
-func max[T number](iter iterator[T]) T {
-	var value T
-	iter.foreach(func(it T) {
-		if value < it {
-			value = it
-		}
-	})
-	return value
-}
-
-func min[T number](iter iterator[T]) T {
-	var value T
-	iter.foreach(func(it T) {
-		if value > it {
-			value = it
-		}
-	})
-	return value
+	var result T
+	for v := iter.next(); v.ok; v = iter.next() {
+		result += v.val
+	}
+	return result
 }
 
 func count[T any](iter iterator[T]) int {
-	var value int
-	iter.foreach(func(it T) {
-		value++
-	})
-	return value
+	var result int
+	for v := iter.next(); v.ok; v = iter.next() {
+		result++
+	}
+	return result
+}
+
+func max[T number](iter iterator[T]) T {
+	var result T
+	for v := iter.next(); v.ok; v = iter.next() {
+		if result < v.val {
+			result = v.val
+		}
+	}
+	return result
+}
+
+func min[T number](iter iterator[T]) T {
+	var result T
+	for v := iter.next(); v.ok; v = iter.next() {
+		if result > v.val {
+			result = v.val
+		}
+	}
+	return result
+}
+
+func foreach[T any](action func(T)) func(iterator[T]) {
+	return func(iter iterator[T]) {
+		for v := iter.next(); v.ok; v = iter.next() {
+			action(v.val)
+		}
+	}
+}
+
+func allMatch[T any](predicate func(T) bool) func(iterator[T]) bool {
+	return func(iter iterator[T]) bool {
+		for v := iter.next(); v.ok; v = iter.next() {
+			if !predicate(v.val) {
+				return false
+			}
+		}
+		return true
+	}
+}
+
+func noneMatch[T any](predicate func(T) bool) func(iterator[T]) bool {
+	return func(iter iterator[T]) bool {
+		for v := iter.next(); v.ok; v = iter.next() {
+			if predicate(v.val) {
+				return false
+			}
+		}
+		return true
+	}
+}
+
+func anyMatch[T any](predicate func(T) bool) func(iterator[T]) bool {
+	return func(iter iterator[T]) bool {
+		for v := iter.next(); v.ok; v = iter.next() {
+			if predicate(v.val) {
+				return true
+			}
+		}
+		return false
+	}
+}
+
+func first[T any](iter iterator[T]) option[T] {
+	return iter.next()
+}
+
+func last[T any](iter iterator[T]) option[T] {
+	var result = iter.next()
+	for v := iter.next(); v.ok; v = iter.next() {
+		result = v
+	}
+	return result
 }
 
 func fold[T any, R any](initial R, operation func(R, T) R) func(iterator[T]) R {
 	return func(iter iterator[T]) R {
-		iter.foreach(func(it T) {
-			initial = operation(initial, it)
-		})
-		return initial
+		var result = initial
+		for v := iter.next(); v.ok; v = iter.next() {
+			result = operation(result, v.val)
+		}
+		return result
 	}
 }
