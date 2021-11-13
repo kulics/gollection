@@ -124,6 +124,28 @@ func none[T any]() option[T] {
 	return option[T]{empty, false}
 }
 
+type indexStream[T any] struct {
+	index int
+	iter iterator[T]
+}
+
+type pair[T any, R any] struct {
+	first T
+	second R
+}
+
+func (i *indexStream[T]) next() option[pair[int, T]] {
+	if v := i.iter.next(); v.ok {
+		i.index++
+		return some[pair[int, T]](pair[int, T]{i.index, v.val})
+	}
+	return none[pair[int, T]]()
+}
+
+func withIndex[T any](iter iterator[T]) iterator[pair[int, T]] {
+	return &indexStream[T]{-1, iter}
+}
+
 type mapStream[T any, R any] struct {
 	transform func(T) R
 	iter iterator[T]
