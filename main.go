@@ -125,65 +125,233 @@ func (a *linkedStack[T]) peek() option[T] {
 	return some(a.head.value)
 }
 
-func emptyArrayList[T any]() *arraylist[T] {
-	return &arraylist[T]{make([]T, 0)}
+func emptyArrayList[T any]() *arrayList[T] {
+	return &arrayList[T]{make([]T, 0)}
 }
 
-func arrayListOfCap[T any](capacity int) *arraylist[T] {
-	return &arraylist[T]{make([]T, 0, capacity)}
+func arrayListOfCap[T any](capacity int) *arrayList[T] {
+	return &arrayList[T]{make([]T, 0, capacity)}
 }
 
-func arrayListOf[T any](elements ...T) *arraylist[T] {
-	return &arraylist[T]{elements}
+func arrayListOf[T any](elements ...T) *arrayList[T] {
+	return &arrayList[T]{elements}
 }
 
-type arraylist[T any] struct {
+type arrayList[T any] struct {
 	data []T
 }
 
-func (a *arraylist[T]) append(element T)  {
+func (a *arrayList[T]) prepend(element T) {
+	a.insert(0, element)
+}
+
+func (a *arrayList[T]) append(element T) {
 	a.data = append(a.data, element)
 }
 
-func (a *arraylist[T]) remove(index int) T {
+func (a *arrayList[T]) insert(index int, element T) bool {
+	if index < 0 || index >= a.size() {
+		return false
+	}
+	a.data = append(a.data, element)
+	copy(a.data[index+1:], a.data[index:])
+	a.data[index] = element
+	return true
+}
+
+func (a *arrayList[T]) remove(index int) option[T] {
+	if index < 0 || index >= a.size() {
+		return none[T]()
+	}
 	var removed = a.data[index]
 	a.data = append(a.data[:index], a.data[index+1:]...) 
-	return removed
+	return some(removed)
 }
 
-func (a *arraylist[T]) get(index int) T {
-	return a.data[index]
+func (a *arrayList[T]) get(index int) option[T] {
+	if index < 0 || index >= a.size() {
+		return none[T]()
+	}
+	return some(a.data[index])
 }
 
-func (a *arraylist[T]) set(index int, newElement T) {
+func (a *arrayList[T]) set(index int, newElement T) option[T] {
+	if index < 0 || index >= a.size() {
+		return none[T]()
+	}
+	var oldElement = a.data[index]
 	a.data[index] = newElement
+	return some(oldElement)
 }
 
-func (a *arraylist[T]) clean() {
+func (a *arrayList[T]) clean() {
 	a.data = make([]T, 0)
 }
 
-func (a *arraylist[T]) size() int {
+func (a *arrayList[T]) size() int {
 	return len(a.data)
 }
 
-func (a *arraylist[T]) isEmpty() bool {
-	return len(a.data)== 0
+func (a *arrayList[T]) isEmpty() bool {
+	return a.size()== 0
 }
 
-func (a *arraylist[T]) iter() iterator[T] {
-	return &arraylistIterator[T]{-1, *a}
+func (a *arrayList[T]) iter() iterator[T] {
+	return &arrayListIterator[T]{-1, *a}
 }
 
-type arraylistIterator[T any] struct {
+type arrayListIterator[T any] struct {
 	index int
-	source arraylist[T]
+	source arrayList[T]
 }
 
-func (a *arraylistIterator[T]) next() option[T] {
+func (a *arrayListIterator[T]) next() option[T] {
 	if a.index < a.source.size()-1 {
 		a.index++
 		return some(a.source.data[a.index])
+	}
+	return none[T]()
+}
+
+func emptyLinkedList[T any]() *linkedList[T] {
+	return &linkedList[T]{0, nil}
+}
+
+type linkedList[T any] struct {
+	currentSize int
+	head *node[T]
+}
+
+func (a *linkedList[T]) prepend(element T) {
+	if a.head == nil {
+		a.head = &node[T]{element, nil}
+	} else {
+		a.head = &node[T]{element, a.head}
+	}
+	a.currentSize++
+}
+
+func (a *linkedList[T]) append(element T) {
+	addNode(a.head, element)
+	a.currentSize++
+}
+
+func addNode[T any](n *node[T], v T) {
+	if n == nil {
+		*n = node[T]{v, nil}
+	} else {
+		addNode(n.next, v)
+	}
+}
+
+func (a *linkedList[T]) insert(index int, element T) bool {
+	if index < 0 || index >= a.size() {
+		return false
+	}
+	if index == 0 {
+		a.prepend(element)
+	} else if index == a.size() {
+		a.append(element)
+	} else {
+		insertNode(a.head.next, a.head, index-1, element)
+	}
+	return true
+}
+
+func insertNode[T any](n *node[T], pre *node[T], i int, e T) {
+	if i == 0 {
+		pre.next = &node[T]{e, n}
+	} else {
+		insertNode(n.next, n, i-1, e)
+	}
+}
+
+func (a *linkedList[T]) remove(index int) option[T] {
+	if index < 0 || index >= a.size() {
+		return none[T]()
+	}
+	var item T
+	if index == 0 {
+		var temp = a.head
+		a.head = a.head.next
+		temp.next = nil
+		item = temp.value
+	} else {
+		item = removeNode(a.head.next, a.head, index-1)
+	}
+	a.currentSize--
+	return some(item)
+}
+
+func removeNode[T any](n *node[T], pre *node[T], i int) T {
+	if i == 0 {
+		var item = n.value
+		pre.next = n.next
+		n.next = nil
+		return item
+	} else {
+		return removeNode(n.next, n, i-1)
+	}
+}
+
+func (a *linkedList[T]) get(index int) option[T] {
+	if index < 0 || index >= a.size() {
+		return none[T]()
+	}
+	return some(getNode(a.head, index))
+}
+
+func getNode[T any](n *node[T], i int) T {
+	if i == 0 {
+		return n.value
+	} else {
+		return getNode(n.next, i-1)
+	}
+}
+
+func (a *linkedList[T]) set(index int, newElement T) option[T] {
+	if index < 0 || index >= a.size() {
+		return none[T]()
+	}
+	return some(setNode(a.head, index, newElement))
+}
+
+func setNode[T any](n *node[T], i int, v T) T {
+	if i == 0 {
+		var oldValue = n.value
+		n.value = v
+		return oldValue
+	} else {
+		return setNode(n.next, i-1, v)
+	}
+}
+
+func (a *linkedList[T]) clean() {
+	a.head = nil
+	a.currentSize = 0
+}
+
+func (a *linkedList[T]) size() int {
+	return a.currentSize
+}
+
+func (a *linkedList[T]) isEmpty() bool {
+	return a.size()== 0
+}
+
+func (a *linkedList[T]) iter() iterator[T] {
+	return &linkedListIterator[T]{a.head}
+}
+
+type linkedListIterator[T any] struct {
+	current *node[T]
+}
+
+func (a *linkedListIterator[T]) next() option[T] {
+	if a.current != nil {
+		var item = a.current.value
+		a.current = a.current.next
+		return some(item)
 	}
 	return none[T]()
 }
