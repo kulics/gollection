@@ -124,6 +124,23 @@ func none[T any]() option[T] {
 	return option[T]{empty, false}
 }
 
+type sliceIterator[T any] struct {
+	index int
+	source []T
+}
+
+func (s *sliceIterator[T]) next() option[T] {
+	if s.index < len(s.source) - 1 {
+		s.index++
+		return some[T](s.source[s.index])
+	}
+	return none[T]()
+}
+
+func sliceIter[T any](source []T) iterator[T] {
+	return &sliceIterator[T]{0, source}
+}
+
 type indexStream[T any] struct {
 	index int
 	iter iterator[T]
