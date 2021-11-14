@@ -39,12 +39,98 @@ func main() {
 	fmt.Println(count)
 }
 
+func emptyArrayStack[T any]() *arrayStack[T] {
+	return &arrayStack[T]{make([]T, 0)}
+}
+
+type arrayStack[T any] struct {
+	source []T
+}
+
+func (a *arrayStack[T]) size() int  {
+	return len(a.source)
+}
+
+func (a *arrayStack[T]) isEmpty() bool  {
+	return a.size() == 0
+}
+
+func (a *arrayStack[T]) push(element T) {
+	a.source = append(a.source, element)
+}
+
+func (a *arrayStack[T]) pop() option[T] {
+	var size = len(a.source)
+	if size == 0 {
+		return none[T]()
+	}
+	var item = a.source[size-1]
+	a.source = a.source[:size-1]
+	return some(item)
+}
+
+func (a *arrayStack[T]) peek() option[T] {
+	var size = len(a.source)
+	if size == 0 {
+		return none[T]()
+	}
+	return some(a.source[size-1])
+}
+
+type node[T any] struct {
+	value T
+	next *node[T]
+}
+
+func emptyLinkedStack[T any]() *linkedStack[T] {
+	return &linkedStack[T]{0, nil}
+}
+
+type linkedStack[T any] struct {
+	currentSize int
+	head *node[T]
+}
+
+func (a *linkedStack[T]) size() int  {
+	return a.currentSize
+}
+
+func (a *linkedStack[T]) isEmpty() bool  {
+	return a.size() == 0
+}
+
+func (a *linkedStack[T]) push(element T) {
+	a.currentSize++
+	if a.head == nil {
+		a.head = &node[T]{element, nil}
+	} else {
+		a.head = &node[T]{element, a.head}
+	}
+}
+
+func (a *linkedStack[T]) pop() option[T] {
+	if a.head == nil {
+		return none[T]()
+	}
+	a.currentSize--
+	var item = a.head.value
+	a.head = a.head.next
+	return some(item)
+}
+
+func (a *linkedStack[T]) peek() option[T] {
+	if a.head == nil {
+		return none[T]()
+	}
+	return some(a.head.value)
+}
+
 func emptyArrayList[T any]() *arraylist[T] {
 	return &arraylist[T]{make([]T, 0)}
 }
 
 func arrayListOfCap[T any](capacity int) *arraylist[T] {
-	return &arraylist[T]{make([]T, capacity)}
+	return &arraylist[T]{make([]T, 0, capacity)}
 }
 
 func arrayListOf[T any](elements ...T) *arraylist[T] {
@@ -97,7 +183,7 @@ type arraylistIterator[T any] struct {
 func (a *arraylistIterator[T]) next() option[T] {
 	if a.index < a.source.size()-1 {
 		a.index++
-		return some[T](a.source.data[a.index])
+		return some(a.source.data[a.index])
 	}
 	return none[T]()
 }
@@ -132,7 +218,7 @@ type sliceIterator[T any] struct {
 func (s *sliceIterator[T]) next() option[T] {
 	if s.index < len(s.source) - 1 {
 		s.index++
-		return some[T](s.source[s.index])
+		return some(s.source[s.index])
 	}
 	return none[T]()
 }
@@ -154,7 +240,7 @@ type pair[T any, R any] struct {
 func (i *indexStream[T]) next() option[pair[int, T]] {
 	if v := i.iter.next(); v.ok {
 		i.index++
-		return some[pair[int, T]](pair[int, T]{i.index, v.val})
+		return some(pair[int, T]{i.index, v.val})
 	}
 	return none[pair[int, T]]()
 }
@@ -170,7 +256,7 @@ type mapStream[T any, R any] struct {
 
 func (m mapStream[T, R]) next() option[R] {
 	if v := m.iter.next(); v.ok {
-		return some[R](m.transform(v.val))
+		return some(m.transform(v.val))
 	}
 	return none[R]()
 }
