@@ -129,7 +129,7 @@ func emptyArrayList[T any]() *arrayList[T] {
 	return &arrayList[T]{make([]T, 0)}
 }
 
-func arrayListOfCap[T any](capacity int) *arrayList[T] {
+func newArrayListWithCap[T any](capacity int) *arrayList[T] {
 	return &arrayList[T]{make([]T, 0, capacity)}
 }
 
