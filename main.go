@@ -369,6 +369,13 @@ type option[T any] struct {
 	ok bool
 }
 
+func (o option[T]) orElse(v T) T {
+	if o.ok {
+		return o.val
+	}
+	return v
+}
+
 func some[T any](value T) option[T] {
 	return option[T]{value, true}
 }
