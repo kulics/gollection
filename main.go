@@ -1,44 +1,7 @@
 package main
 
-import "fmt"
 
 func main() {
-	fmt.Println((1))
-	var list = emptyArrayList[int]()
-	for i := 0; i < 10; i ++ {
-		list.append(i)
-	}
-	fmt.Println(list.data)
-	list = arrayListOf(7,7,7,7,7,7,7)
-	fmt.Println(list.data)
-	list.remove(0)
-	fmt.Println(list.data)
-	fmt.Println(list.size())
-	fmt.Println(list.isEmpty())
-	fmt.Println(list.get(1))
-	list.set(1, 5)
-	fmt.Println(list.data)
-
-	list = emptyArrayList[int]()
-	for i := 0; i < 10; i ++ {
-		list.append(i)
-	}
-	fmt.Println(list.data)
-
-	fmt.Println(count[int](list.iter()))
-
-	mapf := func(it int) int { 
-		return it * 2 
-	}
-	filterf := func(it int) bool { 
-		if it % 2 == 0 { 
-			return true
-		} else { 
-			return false 
-		}
-	}
-	count := sum[int](mapto[int](mapf, filter[int](filterf, list)))
-	fmt.Println(count)
 }
 
 func emptyArrayStack[T any]() *arrayStack[T] {
@@ -61,22 +24,22 @@ func (a *arrayStack[T]) push(element T) {
 	a.source = append(a.source, element)
 }
 
-func (a *arrayStack[T]) pop() option[T] {
+func (a *arrayStack[T]) pop() (value T, ok bool) {
 	var size = len(a.source)
 	if size == 0 {
-		return none[T]()
+		return
 	}
 	var item = a.source[size-1]
 	a.source = a.source[:size-1]
-	return some(item)
+	return item, true
 }
 
-func (a *arrayStack[T]) peek() option[T] {
+func (a *arrayStack[T]) peek() (value T, ok bool) {
 	var size = len(a.source)
 	if size == 0 {
-		return none[T]()
+		return
 	}
-	return some(a.source[size-1])
+	return a.source[size - 1], true
 }
 
 type node[T any] struct {
@@ -110,21 +73,21 @@ func (a *linkedStack[T]) push(element T) {
 	}
 }
 
-func (a *linkedStack[T]) pop() option[T] {
+func (a *linkedStack[T]) pop() (value T, ok bool) {
 	if a.head == nil {
-		return none[T]()
+		return
 	}
 	a.currentSize--
 	var item = a.head.value
 	a.head = a.head.next
-	return some(item)
+	return item, true
 }
 
-func (a *linkedStack[T]) peek() option[T] {
+func (a *linkedStack[T]) peek() (value T, ok bool) {
 	if a.head == nil {
-		return none[T]()
+		return
 	}
-	return some(a.head.value)
+	return a.head.value, true
 }
 
 func emptyArrayList[T any]() *arrayList[T] {
@@ -161,29 +124,29 @@ func (a *arrayList[T]) insert(index int, element T) bool {
 	return true
 }
 
-func (a *arrayList[T]) remove(index int) option[T] {
+func (a *arrayList[T]) remove(index int) (value T, ok bool) {
 	if index < 0 || index >= a.size() {
-		return none[T]()
+		return
 	}
 	var removed = a.data[index]
 	a.data = append(a.data[:index], a.data[index+1:]...) 
-	return some(removed)
+	return removed, true
 }
 
-func (a *arrayList[T]) get(index int) option[T] {
+func (a *arrayList[T]) get(index int) (value T, ok bool) {
 	if index < 0 || index >= a.size() {
-		return none[T]()
+		return
 	}
-	return some(a.data[index])
+	return a.data[index], true
 }
 
-func (a *arrayList[T]) set(index int, newElement T) option[T] {
+func (a *arrayList[T]) set(index int, newElement T) (value T, ok bool) {
 	if index < 0 || index >= a.size() {
-		return none[T]()
+		return
 	}
 	var oldElement = a.data[index]
 	a.data[index] = newElement
-	return some(oldElement)
+	return oldElement, true
 }
 
 func (a *arrayList[T]) clean() {
@@ -207,12 +170,12 @@ type arrayListIterator[T any] struct {
 	source arrayList[T]
 }
 
-func (a *arrayListIterator[T]) next() option[T] {
+func (a *arrayListIterator[T]) next() (value T, ok bool) {
 	if a.index < a.source.size()-1 {
 		a.index++
-		return some(a.source.data[a.index])
+		return a.source.data[a.index], true
 	}
-	return none[T]()
+	return
 }
 
 func (a *arrayListIterator[T]) iter() iterator[T] {
@@ -272,9 +235,9 @@ func insertNode[T any](n *node[T], pre *node[T], i int, e T) {
 	}
 }
 
-func (a *linkedList[T]) remove(index int) option[T] {
+func (a *linkedList[T]) remove(index int) (value T, ok bool) {
 	if index < 0 || index >= a.size() {
-		return none[T]()
+		return
 	}
 	var item T
 	if index == 0 {
@@ -286,7 +249,7 @@ func (a *linkedList[T]) remove(index int) option[T] {
 		item = removeNode(a.head.next, a.head, index-1)
 	}
 	a.currentSize--
-	return some(item)
+	return item, true
 }
 
 func removeNode[T any](n *node[T], pre *node[T], i int) T {
@@ -300,11 +263,11 @@ func removeNode[T any](n *node[T], pre *node[T], i int) T {
 	}
 }
 
-func (a *linkedList[T]) get(index int) option[T] {
+func (a *linkedList[T]) get(index int) (value T, ok bool) {
 	if index < 0 || index >= a.size() {
-		return none[T]()
+		return
 	}
-	return some(getNode(a.head, index))
+	return getNode(a.head, index), true
 }
 
 func getNode[T any](n *node[T], i int) T {
@@ -315,11 +278,11 @@ func getNode[T any](n *node[T], i int) T {
 	}
 }
 
-func (a *linkedList[T]) set(index int, newElement T) option[T] {
+func (a *linkedList[T]) set(index int, newElement T) (value T, ok bool) {
 	if index < 0 || index >= a.size() {
-		return none[T]()
+		return
 	}
-	return some(setNode(a.head, index, newElement))
+	return setNode(a.head, index, newElement), true
 }
 
 func setNode[T any](n *node[T], i int, v T) T {
@@ -353,13 +316,13 @@ type linkedListIterator[T any] struct {
 	current *node[T]
 }
 
-func (a *linkedListIterator[T]) next() option[T] {
+func (a *linkedListIterator[T]) next() (value T, ok bool) {
 	if a.current != nil {
 		var item = a.current.value
 		a.current = a.current.next
-		return some(item)
+		return item, true
 	}
-	return none[T]()
+	return
 }
 
 func (a *linkedListIterator[T]) iter() iterator[T] {
@@ -368,32 +331,11 @@ func (a *linkedListIterator[T]) iter() iterator[T] {
 
 type iterator[T any] interface {
 	iter() iterator[T]
-	next() option[T]
+	next() (T, bool)
 }
 
 type iterable[T any] interface {
 	iter() iterator[T]
-}
-
-type option[T any] struct {
-	val T
-	ok bool
-}
-
-func (o option[T]) orElse(v T) T {
-	if o.ok {
-		return o.val
-	}
-	return v
-}
-
-func some[T any](value T) option[T] {
-	return option[T]{value, true}
-}
-
-func none[T any]() option[T] {
-	var empty T
-	return option[T]{empty, false}
 }
 
 type sliceIterator[T any] struct {
@@ -401,12 +343,12 @@ type sliceIterator[T any] struct {
 	source []T
 }
 
-func (s *sliceIterator[T]) next() option[T] {
+func (s *sliceIterator[T]) next() (value T, ok bool) {
 	if s.index < len(s.source) - 1 {
 		s.index++
-		return some(s.source[s.index])
+		return s.source[s.index], true
 	}
-	return none[T]()
+	return
 }
 
 func (s *sliceIterator[T]) iter() iterator[T] {
@@ -427,12 +369,12 @@ type pair[T any, R any] struct {
 	second R
 }
 
-func (i *indexStream[T]) next() option[pair[int, T]] {
-	if v := i.iterator.next(); v.ok {
+func (i *indexStream[T]) next() (value pair[int, T], ok bool) {
+	if v, ok := i.iterator.next(); ok {
 		i.index++
-		return some(pair[int, T]{i.index, v.val})
+		return pair[int, T]{i.index, v}, true
 	}
-	return none[pair[int, T]]()
+	return
 }
 
 func (i *indexStream[T]) iter() iterator[pair[int, T]] {
@@ -448,11 +390,11 @@ type mapStream[T any, R any] struct {
 	iterator iterator[T]
 }
 
-func (m mapStream[T, R]) next() option[R] {
-	if v := m.iterator.next(); v.ok {
-		return some(m.transform(v.val))
+func (m mapStream[T, R]) next() (value R, ok bool) {
+	if v, ok := m.iterator.next(); ok {
+		return m.transform(v), true
 	}
-	return none[R]()
+	return
 }
 
 func (m mapStream[T, R]) iter() iterator[R] {
@@ -468,13 +410,13 @@ type filterStream[T any] struct {
 	iterator iterator[T]
 }
 
-func (f filterStream[T]) next() option[T] {
-	for v := f.iterator.next(); v.ok; v = f.iterator.next() {
-		if f.predecate(v.val) {
-			return v
+func (f filterStream[T]) next() (value T, ok bool) {
+	for v, ok := f.iterator.next(); ok; v, ok = f.iterator.next() {
+		if f.predecate(v) {
+			return v, true
 		}
 	}
-	return none[T]()
+	return
 }
 
 func (f filterStream[T]) iter() iterator[T] {
@@ -491,12 +433,12 @@ type limitStream[T any] struct {
 	iterator iterator[T]
 }
 
-func (l *limitStream[T]) next() option[T] {
-	if v := l.iterator.next(); v.ok && l.index < l.limit {
+func (l *limitStream[T]) next() (value T, ok bool) {
+	if v, ok := l.iterator.next(); ok && l.index < l.limit {
 		l.index++
-		return v
+		return v, true
 	}
-	return none[T]()
+	return
 }
 
 func (l *limitStream[T]) iter() iterator[T] {
@@ -513,15 +455,15 @@ type skipStream[T any] struct {
 	iterator iterator[T]
 }
 
-func (l *skipStream[T]) next() option[T] {
-	for v := l.iterator.next(); v.ok; v = l.iterator.next() {
+func (l *skipStream[T]) next() (value T, ok bool) {
+	for v, ok := l.iterator.next(); ok; v, ok = l.iterator.next() {
 		if l.index < l.skip {
 			l.index++
 			continue
 		}
-		return v
+		return v, true
 	}
-	return none[T]()
+	return
 }
 
 func (l *skipStream[T]) iter() iterator[T] {
@@ -538,38 +480,38 @@ type stepStream[T any] struct {
 	iterator iterator[T]
 }
 
-func (l *stepStream[T]) next() option[T] {
-	for v := l.iterator.next(); v.ok; v = l.iterator.next() {
+func (l *stepStream[T]) next() (value T, ok bool) {
+	for v, ok := l.iterator.next(); ok; v, ok = l.iterator.next() {
 		if l.index < l.step {
 			l.index++
 			continue
 		}
 		l.index = 0
-		return v
+		return v, true
 	}
-	return none[T]()
+	return
 }
 
 func (l *stepStream[T]) iter() iterator[T] {
 	return l
 }
 
-
 func step[T any](count int, it iterable[T]) iterator[T] {
 	return &stepStream[T]{count, 0, it.iter()}
 }
 
 type concatStream[T any] struct {
-	first option[iterator[T]]
+	firstok bool
+	first iterator[T]
 	last iterator[T]
 }
 
-func (l *concatStream[T]) next() option[T] {
-	if l.first.ok {
-		if v := l.first.val.next(); v.ok {
-			return v
+func (l *concatStream[T]) next() (value T, ok bool) {
+	if l.firstok {
+		if v, ok := l.first.next(); ok {
+			return v, true
 		}
-		l.first = none[iterator[T]]()
+		l.firstok = false
 		return l.next()
 	}
 	return l.last.next()
@@ -580,7 +522,7 @@ func (l *concatStream[T]) iter() iterator[T] {
 }
 
 func concat[T any](left iterable[T], right iterable[T]) iterator[T] {
-	return &concatStream[T]{some(left.iter()), right.iter()}
+	return &concatStream[T]{false, left.iter(), right.iter()}
 }
 
 type number interface {
@@ -590,8 +532,8 @@ type number interface {
 func sum[T number](it iterable[T]) T {
 	var result T
 	var iter = it.iter()
-	for v := iter.next(); v.ok; v = iter.next() {
-		result += v.val
+	for v, ok := iter.next(); ok; v, ok = iter.next() {
+		result += v
 	}
 	return result
 }
@@ -599,7 +541,7 @@ func sum[T number](it iterable[T]) T {
 func count[T any](it iterable[T]) int {
 	var result int
 	var iter = it.iter()
-	for v := iter.next(); v.ok; v = iter.next() {
+	for _, ok := iter.next(); ok; _, ok = iter.next() {
 		result++
 	}
 	return result
@@ -608,9 +550,9 @@ func count[T any](it iterable[T]) int {
 func max[T number](it iterable[T]) T {
 	var result T
 	var iter = it.iter()
-	for v := iter.next(); v.ok; v = iter.next() {
-		if result < v.val {
-			result = v.val
+	for v, ok := iter.next(); ok; v, ok = iter.next() {
+		if result < v {
+			result = v
 		}
 	}
 	return result
@@ -619,9 +561,9 @@ func max[T number](it iterable[T]) T {
 func min[T number](it iterable[T]) T {
 	var result T
 	var iter = it.iter()
-	for v := iter.next(); v.ok; v = iter.next() {
-		if result > v.val {
-			result = v.val
+	for v, ok := iter.next(); ok; v, ok = iter.next() {
+		if result > v {
+			result = v
 		}
 	}
 	return result
@@ -629,15 +571,15 @@ func min[T number](it iterable[T]) T {
 
 func foreach[T any](action func(T), it iterable[T]) {
 	var iter = it.iter()
-	for v := iter.next(); v.ok; v = iter.next() {
-		action(v.val)
+	for v, ok := iter.next(); ok; v, ok = iter.next() {
+		action(v)
 	}
 }
 
 func allMatch[T any](predicate func(T) bool, it iterable[T]) bool {
 	var iter = it.iter()
-	for v := iter.next(); v.ok; v = iter.next() {
-		if !predicate(v.val) {
+	for v, ok := iter.next(); ok; v, ok = iter.next() {
+		if !predicate(v) {
 			return false
 		}
 	}
@@ -646,8 +588,8 @@ func allMatch[T any](predicate func(T) bool, it iterable[T]) bool {
 
 func noneMatch[T any](predicate func(T) bool, it iterable[T]) bool {
 	var iter = it.iter()
-	for v := iter.next(); v.ok; v = iter.next() {
-		if predicate(v.val) {
+	for v, ok := iter.next(); ok; v, ok = iter.next() {
+		if predicate(v) {
 			return false
 		}
 	}
@@ -656,32 +598,56 @@ func noneMatch[T any](predicate func(T) bool, it iterable[T]) bool {
 
 func anyMatch[T any](predicate func(T) bool, it iterable[T]) bool {
 	var iter = it.iter()
-	for v := iter.next(); v.ok; v = iter.next() {
-		if predicate(v.val) {
+	for v, ok := iter.next(); ok; v, ok = iter.next() {
+		if predicate(v) {
 			return true
 		}
 	}
 	return false
 }
 
-func first[T any](it iterable[T]) option[T] {
+func first[T any](it iterable[T]) (value T, ok bool) {
 	return it.iter().next()
 }
 
-func last[T any](it iterable[T]) option[T] {
+func last[T any](it iterable[T]) (value T, ok bool) {
 	var iter = it.iter()
-	var result = iter.next()
-	for v := iter.next(); v.ok; v = iter.next() {
-		result = v
+	v, ok := iter.next()
+	for ok {
+		v, ok = iter.next()
 	}
-	return result
+	return v, ok
+}
+
+func at[T any](index int, it iterable[T]) (value T, ok bool) {
+	var iter = it.iter()
+	v, ok := iter.next()
+	var i = 0
+	for i < index && ok {
+		v, ok = iter.next()
+		i++
+	}
+	return v, ok
 }
 
 func reduce[T any, R any](initial R, operation func(R, T) R, it iterable[T]) R {
 	var iter = it.iter()
 	var result = initial
-	for v := iter.next(); v.ok; v = iter.next() {
-		result = operation(result, v.val)
+	for v, ok := iter.next(); ok; v, ok = iter.next() {
+		result = operation(result, v)
+	}
+	return result
+}
+
+func fold[T any, R any](initial R, operation func(T, R) R, it iterable[T]) R {
+	var reverse = make([]T, 0)
+	var iter = it.iter()
+	for v, ok := iter.next(); ok; v, ok = iter.next() {
+		reverse = append(reverse, v)
+	}
+	var result = initial
+	for i := len(reverse)-1; i > 0; i-- {
+		result = operation(reverse[i], result)
 	}
 	return result
 }
