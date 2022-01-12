@@ -356,7 +356,7 @@ func (s *sliceIterator[T]) iter() iterator[T] {
 }
 
 func sliceIter[T any](source []T) iterator[T] {
-	return &sliceIterator[T]{0, source}
+	return &sliceIterator[T]{-1, source}
 }
 
 type indexStream[T any] struct {
@@ -486,7 +486,7 @@ func (l *stepStream[T]) next() (value T, ok bool) {
 			l.index++
 			continue
 		}
-		l.index = 0
+		l.index = 1
 		return v, true
 	}
 	return
@@ -497,7 +497,7 @@ func (l *stepStream[T]) iter() iterator[T] {
 }
 
 func step[T any](count int, it iterable[T]) iterator[T] {
-	return &stepStream[T]{count, 0, it.iter()}
+	return &stepStream[T]{count, count, it.iter()}
 }
 
 type concatStream[T any] struct {
