@@ -1,6 +1,6 @@
 package main
 
-type Slice[T any] struct{
+type Slice[T any] struct {
 	Source []T
 }
 
@@ -17,20 +17,20 @@ func (s Slice[T]) IsEmpty() bool {
 }
 
 func ToSlice[T any](s []T) Slice[T] {
-	return Slice[T]{ s }
+	return Slice[T]{s}
 }
 
 func SliceIter[T any](source []T) Iterator[T] {
-	return &sliceIterator[T]{0, source}
+	return &sliceIterator[T]{-1, source}
 }
 
 type sliceIterator[T any] struct {
-	index int
+	index  int
 	source []T
 }
 
 func (s *sliceIterator[T]) Next() Option[T] {
-	if s.index < len(s.source) - 1 {
+	if s.index < len(s.source)-1 {
 		s.index++
 		return Some(s.source[s.index])
 	}
@@ -40,4 +40,3 @@ func (s *sliceIterator[T]) Next() Option[T] {
 func (s *sliceIterator[T]) Iter() Iterator[T] {
 	return s
 }
-

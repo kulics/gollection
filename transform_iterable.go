@@ -120,7 +120,7 @@ func (l *skipStream[T]) Iter() Iterator[T] {
 }
 
 func Step[T any](count int, it Iterable[T]) Iterator[T] {
-	return &stepStream[T]{count, 0, it.Iter()}
+	return &stepStream[T]{count, count, it.Iter()}
 }
 
 type stepStream[T any] struct {
@@ -135,7 +135,7 @@ func (l *stepStream[T]) Next() Option[T] {
 			l.index++
 			continue
 		}
-		l.index = 0
+		l.index = 1
 		return Some(v)
 	}
 	return None[T]()
