@@ -16,7 +16,7 @@ func MakeArrayStack[T any](capacity int) ArrayStack[T] {
 	}{make([]T, capacity), 0}}
 }
 
-func ArrayStackFrom[T any](collection Collection[T]) ArrayStack[T] {
+func ArrayStackFrom[T any, I Collection[T]](collection I) ArrayStack[T] {
 	var size = collection.Size()
 	var array = make([]T, size)
 	ForEach(func(item Pair[int, T]) {

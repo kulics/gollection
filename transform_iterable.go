@@ -30,23 +30,23 @@ func (i *indexStream[T]) Iter() Iterator[Pair[int, T]] {
 	return i
 }
 
-func Map[T any, R any, I Iterable[T]](transform func(T) R, it I) Iterator[R] {
-	return mapStream[T, R]{transform, it.Iter()}
+func Mapper[T any, R any, I Iterable[T]](transform func(T) R, it I) Iterator[R] {
+	return mapperStream[T, R]{transform, it.Iter()}
 }
 
-type mapStream[T any, R any] struct {
+type mapperStream[T any, R any] struct {
 	transform func(T) R
 	iterator  Iterator[T]
 }
 
-func (m mapStream[T, R]) Next() Option[R] {
+func (m mapperStream[T, R]) Next() Option[R] {
 	if v, ok := m.iterator.Next().Get(); ok {
 		return Some(m.transform(v))
 	}
 	return None[R]()
 }
 
-func (m mapStream[T, R]) Iter() Iterator[R] {
+func (m mapperStream[T, R]) Iter() Iterator[R] {
 	return m
 }
 

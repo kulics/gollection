@@ -11,7 +11,7 @@ func LinkedListOf[T any](elements ...T) LinkedList[T] {
 	return list
 }
 
-func LinkedListFrom[T any](collection Collection[T]) LinkedList[T] {
+func LinkedListFrom[T any, I Collection[T]](collection I) LinkedList[T] {
 	var list = LinkedList[T]{&struct {
 		size int
 		head *Node[T]

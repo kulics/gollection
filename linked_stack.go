@@ -11,7 +11,7 @@ func LinkedStackOf[T any](elements ...T) LinkedStack[T] {
 	return stack
 }
 
-func LinkedStackFrom[T any](collection Collection[T]) LinkedStack[T] {
+func LinkedStackFrom[T any, I Collection[T]](collection I) LinkedStack[T] {
 	var stack = LinkedStack[T]{&struct {
 		size int
 		head *Node[T]

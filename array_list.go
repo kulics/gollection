@@ -16,7 +16,7 @@ func MakeArrayList[T any](capacity int) ArrayList[T] {
 	}{make([]T, capacity), 0}}
 }
 
-func ArrayListFrom[T any](collection Collection[T]) ArrayList[T] {
+func ArrayListFrom[T any, I Collection[T]](collection I) ArrayList[T] {
 	var size = collection.Size()
 	var array = make([]T, size)
 	ForEach(func(item Pair[int, T]) {
