@@ -12,7 +12,7 @@ type Iterable[T any] interface {
 
 type Iterator[T any] interface {
 	Iter() Iterator[T]
-	Next() (T, bool)
+	Next() Option[T]
 }
 
 type Collection[T any] interface {
@@ -26,8 +26,8 @@ type List[T any] interface {
 	Prepend(element T)
 	Append(element T)
 	Insert(index int, element T) bool
-	Remove(index int) (value T, ok bool)
-	Get(index int) (value T, ok bool)
+	Remove(index int) Option[T]
+	Get(index int) Option[T]
 	GetOrPanic(index int) T
-	Set(index int, newElement T) (value T, ok bool)
+	Set(index int, newElement T) Option[T]
 }

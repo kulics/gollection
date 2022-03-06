@@ -121,11 +121,11 @@ func getNode[T any](n *Node[T], i int) T {
 	}
 }
 
-func (a LinkedList[T]) Set(index int, newElement T) (value T, ok bool) {
+func (a LinkedList[T]) Set(index int, newElement T) Option[T] {
 	if a.isOutOfBounds(index) {
-		return
+		return None[T]()
 	}
-	return setNode(a.inner.head, index, newElement), true
+	return Some(setNode(a.inner.head, index, newElement))
 }
 
 func setNode[T any](n *Node[T], i int, v T) T {
@@ -166,13 +166,13 @@ type LinkedListIterator[T any] struct {
 	current *Node[T]
 }
 
-func (a *LinkedListIterator[T]) Next() (value T, ok bool) {
+func (a *LinkedListIterator[T]) Next() Option[T] {
 	if a.current != nil {
 		var item = a.current.Value
 		a.current = a.current.Next
-		return item, true
+		return Some(item)
 	}
-	return
+	return None[T]()
 }
 
 func (a *LinkedListIterator[T]) Iter() Iterator[T] {

@@ -49,13 +49,12 @@ func (a ArrayList[T]) PrependAll(elements Collection[T]) {
 		a.grow(additional)
 	}
 	copy(a.inner.elements[additional:], a.inner.elements[0:])
-	var iter = elements.Iter()
 	var i = 0
-	for v, ok := iter.Next(); ok; v, ok = iter.Next() {
-		a.inner.elements[i] = v
+	ForEach[T](func (item T)  {
+		a.inner.elements[i] = item
 		a.inner.size++
 		i++
-	}
+	}, elements)
 }
 
 func (a ArrayList[T]) Append(element T) {
@@ -71,13 +70,12 @@ func (a ArrayList[T]) AppendAll(elements Collection[T]) {
 	if len(a.inner.elements) < a.inner.size + additional {
 		a.grow(additional)
 	}
-	var iter = elements.Iter()
 	var i = a.inner.size
-	for v, ok := iter.Next(); ok; v, ok = iter.Next() {
-		a.inner.elements[i] = v
+	ForEach[T](func (item T)  {
+		a.inner.elements[i] = item
 		a.inner.size++
 		i++
-	}
+	}, elements)
 }
 
 func (a ArrayList[T]) Insert(index int, element T) bool {
@@ -101,13 +99,12 @@ func (a ArrayList[T]) InsertAll(index int, elements Collection[T]) bool {
 		a.grow(additional)
 	}
 	copy(a.inner.elements[index + additional:], a.inner.elements[index:])
-	var iter = elements.Iter()
 	var i = index
-	for v, ok := iter.Next(); ok; v, ok = iter.Next() {
-		a.inner.elements[i] = v
+	ForEach[T](func (item T)  {
+		a.inner.elements[i] = item
 		a.inner.size++
 		i++
-	}
+	}, elements)
 	return true
 }
 
@@ -130,11 +127,11 @@ func (a ArrayList[T]) Reserve(additional int) {
 	}
 }
 
-func (a ArrayList[T]) Get(index int) (value T, ok bool) {
+func (a ArrayList[T]) Get(index int) Option[T] {
 	if a.isOutOfBounds(index) {
-		return
+		return None[T]()
 	}
-	return a.inner.elements[index], true
+	return Some(a.inner.elements[index])
 }
 
 func (a ArrayList[T]) GetOrPanic(index int) T {
@@ -144,13 +141,13 @@ func (a ArrayList[T]) GetOrPanic(index int) T {
 	return a.inner.elements[index]
 }
 
-func (a ArrayList[T]) Set(index int, newElement T) (value T, ok bool) {
+func (a ArrayList[T]) Set(index int, newElement T) Option[T] {
 	if a.isOutOfBounds(index) {
-		return
+		return None[T]()
 	}
 	var oldElement = a.inner.elements[index]
 	a.inner.elements[index] = newElement
-	return oldElement, true
+	return Some(oldElement)
 }
 
 func (a ArrayList[T]) Clean() {
@@ -195,12 +192,12 @@ type arrayListIterator[T any] struct {
 	source ArrayList[T]
 }
 
-func (a *arrayListIterator[T]) Next() (value T, ok bool) {
+func (a *arrayListIterator[T]) Next() Option[T] {
 	if a.index < a.source.Size() - 1 {
 		a.index++
 		return a.source.Get(a.index)
 	}
-	return
+	return None[T]()
 }
 
 func (a *arrayListIterator[T]) Iter() Iterator[T] {

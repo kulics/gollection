@@ -1,8 +1,12 @@
 package main
 
-type Pair[T any, R any] struct {
-	First T
-	Second R
+type Pair[T1 any, T2 any] struct {
+	First  T1
+	Second T2
+}
+
+func PairOf[T1 any, T2 any](f T1, s T2) Pair[T1, T2] {
+	return Pair[T1, T2]{f, s}
 }
 
 func WithIndex[T any](it Iterable[T]) Iterator[Pair[int, T]] {
@@ -10,16 +14,16 @@ func WithIndex[T any](it Iterable[T]) Iterator[Pair[int, T]] {
 }
 
 type indexStream[T any] struct {
-	index int
+	index    int
 	iterator Iterator[T]
 }
 
-func (i *indexStream[T]) Next() (value Pair[int, T], ok bool) {
-	if v, ok := i.iterator.Next(); ok {
+func (i *indexStream[T]) Next() Option[Pair[int, T]] {
+	if v, ok := i.iterator.Next().Get(); ok {
 		i.index++
-		return Pair[int, T]{i.index, v}, true
+		return Some(PairOf(i.index, v))
 	}
-	return
+	return None[Pair[int, T]]()
 }
 
 func (i *indexStream[T]) Iter() Iterator[Pair[int, T]] {
@@ -32,14 +36,14 @@ func Map[T any, R any](transform func(T) R, it Iterable[T]) Iterator[R] {
 
 type mapStream[T any, R any] struct {
 	transform func(T) R
-	iterator Iterator[T]
+	iterator  Iterator[T]
 }
 
-func (m mapStream[T, R]) Next() (value R, ok bool) {
-	if v, ok := m.iterator.Next(); ok {
-		return m.transform(v), true
+func (m mapStream[T, R]) Next() Option[R] {
+	if v, ok := m.iterator.Next().Get(); ok {
+		return Some(m.transform(v))
 	}
-	return
+	return None[R]()
 }
 
 func (m mapStream[T, R]) Iter() Iterator[R] {
@@ -52,16 +56,16 @@ func Filter[T any](predecate func(T) bool, it Iterable[T]) Iterator[T] {
 
 type filterStream[T any] struct {
 	predecate func(T) bool
-	iterator Iterator[T]
+	iterator  Iterator[T]
 }
 
-func (f filterStream[T]) Next() (value T, ok bool) {
-	for v, ok := f.iterator.Next(); ok; v, ok = f.iterator.Next() {
+func (f filterStream[T]) Next() Option[T] {
+	for v, ok := f.iterator.Next().Get(); ok; v, ok = f.iterator.Next().Get() {
 		if f.predecate(v) {
-			return v, true
+			return Some(v)
 		}
 	}
-	return
+	return None[T]()
 }
 
 func (f filterStream[T]) Iter() Iterator[T] {
@@ -73,17 +77,17 @@ func Limit[T any](count int, it Iterable[T]) Iterator[T] {
 }
 
 type limitStream[T any] struct {
-	limit int
-	index int
+	limit    int
+	index    int
 	iterator Iterator[T]
 }
 
-func (l *limitStream[T]) Next() (value T, ok bool) {
-	if v, ok := l.iterator.Next(); ok && l.index < l.limit {
+func (l *limitStream[T]) Next() Option[T] {
+	if v, ok := l.iterator.Next().Get(); ok && l.index < l.limit {
 		l.index++
-		return v, true
+		return Some(v)
 	}
-	return
+	return None[T]()
 }
 
 func (l *limitStream[T]) Iter() Iterator[T] {
@@ -95,20 +99,20 @@ func Skip[T any](count int, it Iterable[T]) Iterator[T] {
 }
 
 type skipStream[T any] struct {
-	skip int
-	index int
+	skip     int
+	index    int
 	iterator Iterator[T]
 }
 
-func (l *skipStream[T]) Next() (value T, ok bool) {
-	for v, ok := l.iterator.Next(); ok; v, ok = l.iterator.Next() {
+func (l *skipStream[T]) Next() Option[T] {
+	for v, ok := l.iterator.Next().Get(); ok; v, ok = l.iterator.Next().Get() {
 		if l.index < l.skip {
 			l.index++
 			continue
 		}
-		return v, true
+		return Some(v)
 	}
-	return
+	return None[T]()
 }
 
 func (l *skipStream[T]) Iter() Iterator[T] {
@@ -120,21 +124,21 @@ func Step[T any](count int, it Iterable[T]) Iterator[T] {
 }
 
 type stepStream[T any] struct {
-	step int
-	index int
+	step     int
+	index    int
 	iterator Iterator[T]
 }
 
-func (l *stepStream[T]) Next() (value T, ok bool) {
-	for v, ok := l.iterator.Next(); ok; v, ok = l.iterator.Next() {
+func (l *stepStream[T]) Next() Option[T] {
+	for v, ok := l.iterator.Next().Get(); ok; v, ok = l.iterator.Next().Get() {
 		if l.index < l.step {
 			l.index++
 			continue
 		}
 		l.index = 0
-		return v, true
+		return Some(v)
 	}
-	return
+	return None[T]()
 }
 
 func (l *stepStream[T]) Iter() Iterator[T] {
@@ -147,14 +151,14 @@ func Concat[T any](left Iterable[T], right Iterable[T]) Iterator[T] {
 
 type concatStream[T any] struct {
 	firstok bool
-	first Iterator[T]
-	last Iterator[T]
+	first   Iterator[T]
+	last    Iterator[T]
 }
 
-func (l *concatStream[T]) Next() (value T, ok bool) {
+func (l *concatStream[T]) Next() Option[T] {
 	if l.firstok {
-		if v, ok := l.first.Next(); ok {
-			return v, true
+		if v, ok := l.first.Next().Get(); ok {
+			return Some(v)
 		}
 		l.firstok = false
 		return l.Next()

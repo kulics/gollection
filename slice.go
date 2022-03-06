@@ -29,12 +29,12 @@ type sliceIterator[T any] struct {
 	source []T
 }
 
-func (s *sliceIterator[T]) Next() (value T, ok bool) {
+func (s *sliceIterator[T]) Next() Option[T] {
 	if s.index < len(s.source) - 1 {
 		s.index++
-		return s.source[s.index], true
+		return Some(s.source[s.index])
 	}
-	return
+	return None[T]()
 }
 
 func (s *sliceIterator[T]) Iter() Iterator[T] {
