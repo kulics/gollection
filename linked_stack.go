@@ -1,10 +1,10 @@
 package main
 
 func LinkedStackOf[T any](elements ...T) LinkedStack[T] {
-	var stack = LinkedStack[T]{ &struct {
+	var stack = LinkedStack[T]{&struct {
 		size int
 		head *Node[T]
-	}{0, nil} }
+	}{0, nil}}
 	for _, v := range elements {
 		stack.Push(v)
 	}
@@ -12,11 +12,11 @@ func LinkedStackOf[T any](elements ...T) LinkedStack[T] {
 }
 
 func LinkedStackFrom[T any](collection Collection[T]) LinkedStack[T] {
-	var stack = LinkedStack[T]{ &struct {
+	var stack = LinkedStack[T]{&struct {
 		size int
 		head *Node[T]
-	}{0, nil} }
-	ForEach[T](func(item T) { stack.Push(item) }, collection)
+	}{0, nil}}
+	ForEach(stack.Push, collection)
 	return stack
 }
 
@@ -27,11 +27,11 @@ type LinkedStack[T any] struct {
 	}
 }
 
-func (a LinkedStack[T]) Size() int  {
+func (a LinkedStack[T]) Size() int {
 	return a.inner.size
 }
 
-func (a LinkedStack[T]) IsEmpty() bool  {
+func (a LinkedStack[T]) IsEmpty() bool {
 	return a.inner.size == 0
 }
 

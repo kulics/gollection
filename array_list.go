@@ -3,40 +3,40 @@ package main
 func ArrayListOf[T any](elements ...T) ArrayList[T] {
 	var array = make([]T, len(elements))
 	copy(array, elements)
-	return ArrayList[T]{ &struct {
+	return ArrayList[T]{&struct {
 		elements []T
-		size int
-	}{ array, len(elements) }}
+		size     int
+	}{array, len(elements)}}
 }
 
 func MakeArrayList[T any](capacity int) ArrayList[T] {
-	return ArrayList[T]{ &struct {
+	return ArrayList[T]{&struct {
 		elements []T
-		size int
-	}{ make([]T, capacity), 0 }}
+		size     int
+	}{make([]T, capacity), 0}}
 }
 
 func ArrayListFrom[T any](collection Collection[T]) ArrayList[T] {
 	var size = collection.Size()
 	var array = make([]T, size)
-	ForEach[Pair[int, T]](func(item Pair[int, T]) {
+	ForEach(func(item Pair[int, T]) {
 		array[item.First] = item.Second
 	}, WithIndex[T](collection))
-	return ArrayList[T]{ &struct {
+	return ArrayList[T]{&struct {
 		elements []T
-		size int
-	}{ array, size }}
+		size     int
+	}{array, size}}
 }
 
 type ArrayList[T any] struct {
 	inner *struct {
 		elements []T
-		size int
+		size     int
 	}
 }
 
 func (a ArrayList[T]) Prepend(element T) {
-	if len(a.inner.elements) < a.inner.size + 1 {
+	if len(a.inner.elements) < a.inner.size+1 {
 		a.grow(1)
 	}
 	copy(a.inner.elements[1:], a.inner.elements[0:])
@@ -45,12 +45,12 @@ func (a ArrayList[T]) Prepend(element T) {
 
 func (a ArrayList[T]) PrependAll(elements Collection[T]) {
 	var additional = elements.Size()
-	if len(a.inner.elements) < a.inner.size + additional {
+	if len(a.inner.elements) < a.inner.size+additional {
 		a.grow(additional)
 	}
 	copy(a.inner.elements[additional:], a.inner.elements[0:])
 	var i = 0
-	ForEach[T](func (item T)  {
+	ForEach(func(item T) {
 		a.inner.elements[i] = item
 		a.inner.size++
 		i++
@@ -58,7 +58,7 @@ func (a ArrayList[T]) PrependAll(elements Collection[T]) {
 }
 
 func (a ArrayList[T]) Append(element T) {
-	if len(a.inner.elements) < a.inner.size + 1 {
+	if len(a.inner.elements) < a.inner.size+1 {
 		a.grow(1)
 	}
 	a.inner.elements[a.inner.size] = element
@@ -67,11 +67,11 @@ func (a ArrayList[T]) Append(element T) {
 
 func (a ArrayList[T]) AppendAll(elements Collection[T]) {
 	var additional = elements.Size()
-	if len(a.inner.elements) < a.inner.size + additional {
+	if len(a.inner.elements) < a.inner.size+additional {
 		a.grow(additional)
 	}
 	var i = a.inner.size
-	ForEach[T](func (item T)  {
+	ForEach(func(item T) {
 		a.inner.elements[i] = item
 		a.inner.size++
 		i++
@@ -82,10 +82,10 @@ func (a ArrayList[T]) Insert(index int, element T) bool {
 	if index < 0 || index > a.inner.size {
 		return false
 	}
-	if len(a.inner.elements) < a.inner.size + 1 {
+	if len(a.inner.elements) < a.inner.size+1 {
 		a.grow(1)
 	}
-	copy(a.inner.elements[index + 1:], a.inner.elements[index:])
+	copy(a.inner.elements[index+1:], a.inner.elements[index:])
 	a.inner.elements[index] = element
 	return true
 }
@@ -95,12 +95,12 @@ func (a ArrayList[T]) InsertAll(index int, elements Collection[T]) bool {
 		return false
 	}
 	var additional = elements.Size()
-	if len(a.inner.elements) < a.inner.size + additional {
+	if len(a.inner.elements) < a.inner.size+additional {
 		a.grow(additional)
 	}
-	copy(a.inner.elements[index + additional:], a.inner.elements[index:])
+	copy(a.inner.elements[index+additional:], a.inner.elements[index:])
 	var i = index
-	ForEach[T](func (item T)  {
+	ForEach(func(item T) {
 		a.inner.elements[i] = item
 		a.inner.size++
 		i++
@@ -115,7 +115,7 @@ func (a ArrayList[T]) Remove(index int) (value T, ok bool) {
 	var removed = a.inner.elements[index]
 	copy(a.inner.elements[:index], a.inner.elements[index+1:])
 	var emptyValue T
-	a.inner.elements[a.inner.size - 1] = emptyValue
+	a.inner.elements[a.inner.size-1] = emptyValue
 	a.inner.size--
 	return removed, true
 }
@@ -188,12 +188,12 @@ func (a ArrayList[T]) grow(minCapacity int) {
 }
 
 type arrayListIterator[T any] struct {
-	index int
+	index  int
 	source ArrayList[T]
 }
 
 func (a *arrayListIterator[T]) Next() Option[T] {
-	if a.index < a.source.Size() - 1 {
+	if a.index < a.source.Size()-1 {
 		a.index++
 		return a.source.Get(a.index)
 	}

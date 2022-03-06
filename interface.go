@@ -2,8 +2,8 @@ package main
 
 type Number interface {
 	~int | ~int64 | ~int32 | ~int16 | ~int8 |
-	~uint64 | ~uint32 | ~uint16 | ~uint8 | 
-	~float64 | ~float32
+		~uint64 | ~uint32 | ~uint16 | ~uint8 |
+		~float64 | ~float32
 }
 
 type Iterable[T any] interface {
@@ -11,7 +11,7 @@ type Iterable[T any] interface {
 }
 
 type Iterator[T any] interface {
-	Iter() Iterator[T]
+	Iterable[T]
 	Next() Option[T]
 }
 

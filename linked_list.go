@@ -1,10 +1,10 @@
 package main
 
 func LinkedListOf[T any](elements ...T) LinkedList[T] {
-	var list = LinkedList[T]{ &struct {
+	var list = LinkedList[T]{&struct {
 		size int
 		head *Node[T]
-	}{0, nil} }
+	}{0, nil}}
 	for _, v := range elements {
 		list.Prepend(v)
 	}
@@ -12,11 +12,11 @@ func LinkedListOf[T any](elements ...T) LinkedList[T] {
 }
 
 func LinkedListFrom[T any](collection Collection[T]) LinkedList[T] {
-	var list = LinkedList[T]{ &struct {
+	var list = LinkedList[T]{&struct {
 		size int
 		head *Node[T]
-	}{0, nil} }
-	ForEach[T](func(item T) { list.Prepend(item) }, collection)
+	}{0, nil}}
+	ForEach(list.Prepend, collection)
 	return list
 }
 
@@ -28,25 +28,13 @@ type LinkedList[T any] struct {
 }
 
 func (a LinkedList[T]) Prepend(element T) {
-	if a.inner.head == nil {
-		a.inner.head = &Node[T]{element, nil}
-	} else {
-		a.inner.head = &Node[T]{element, a.inner.head}
-	}
+	PrependNode(a.inner.head, element)
 	a.inner.size++
 }
 
 func (a LinkedList[T]) Append(element T) {
-	addNode(a.inner.head, element)
+	AppendNode(a.inner.head, element)
 	a.inner.size++
-}
-
-func addNode[T any](n *Node[T], v T) {
-	if n == nil {
-		*n = Node[T]{v, nil}
-	} else {
-		addNode(n.Next, v)
-	}
 }
 
 func (a LinkedList[T]) Insert(index int, element T) bool {
@@ -58,17 +46,9 @@ func (a LinkedList[T]) Insert(index int, element T) bool {
 	} else if index == a.inner.size {
 		a.Append(element)
 	} else {
-		insertNode(a.inner.head.Next, a.inner.head, index - 1, element)
+		InsertNode(a.inner.head.Next, a.inner.head, index-1, element)
 	}
 	return true
-}
-
-func insertNode[T any](n *Node[T], pre *Node[T], i int, e T) {
-	if i == 0 {
-		pre.Next = &Node[T]{e, n}
-	} else {
-		insertNode(n.Next, n, i - 1, e)
-	}
 }
 
 func (a LinkedList[T]) Remove(index int) (value T, ok bool) {
@@ -82,60 +62,31 @@ func (a LinkedList[T]) Remove(index int) (value T, ok bool) {
 		temp.Next = nil
 		item = temp.Value
 	} else {
-		item = removeNode(a.inner.head.Next, a.inner.head, index - 1)
+		item = RemoveNode(a.inner.head.Next, a.inner.head, index-1)
 	}
 	a.inner.size--
 	return item, true
-}
-
-func removeNode[T any](n *Node[T], pre *Node[T], i int) T {
-	if i == 0 {
-		var item = n.Value
-		pre.Next = n.Next
-		n.Next = nil
-		return item
-	} else {
-		return removeNode(n.Next, n, i - 1)
-	}
 }
 
 func (a LinkedList[T]) Get(index int) (value T, ok bool) {
 	if a.isOutOfBounds(index) {
 		return
 	}
-	return getNode(a.inner.head, index), true
+	return GetNode(a.inner.head, index), true
 }
 
 func (a LinkedList[T]) GetOrPanic(index int) T {
 	if a.isOutOfBounds(index) {
 		panic("out of bounds")
 	}
-	return getNode(a.inner.head, index)
-}
-
-func getNode[T any](n *Node[T], i int) T {
-	if i == 0 {
-		return n.Value
-	} else {
-		return getNode(n.Next, i - 1)
-	}
+	return GetNode(a.inner.head, index)
 }
 
 func (a LinkedList[T]) Set(index int, newElement T) Option[T] {
 	if a.isOutOfBounds(index) {
 		return None[T]()
 	}
-	return Some(setNode(a.inner.head, index, newElement))
-}
-
-func setNode[T any](n *Node[T], i int, v T) T {
-	if i == 0 {
-		var oldValue = n.Value
-		n.Value = v
-		return oldValue
-	} else {
-		return setNode(n.Next, i - 1, v)
-	}
+	return Some(SetNode(a.inner.head, index, newElement))
 }
 
 func (a LinkedList[T]) isOutOfBounds(index int) bool {
@@ -159,7 +110,7 @@ func (a LinkedList[T]) IsEmpty() bool {
 }
 
 func (a LinkedList[T]) Iter() Iterator[T] {
-	return &LinkedListIterator[T]{ a.inner.head }
+	return &LinkedListIterator[T]{a.inner.head}
 }
 
 type LinkedListIterator[T any] struct {

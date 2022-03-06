@@ -5,7 +5,7 @@ type Slice[T any] struct {
 }
 
 func (s Slice[T]) Iter() Iterator[T] {
-	return SliceIter[T](s.Source)
+	return SliceIter(s.Source)
 }
 
 func (s Slice[T]) Size() int {

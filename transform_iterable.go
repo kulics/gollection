@@ -9,7 +9,7 @@ func PairOf[T1 any, T2 any](f T1, s T2) Pair[T1, T2] {
 	return Pair[T1, T2]{f, s}
 }
 
-func WithIndex[T any](it Iterable[T]) Iterator[Pair[int, T]] {
+func WithIndex[T any, I Iterable[T]](it I) Iterator[Pair[int, T]] {
 	return &indexStream[T]{-1, it.Iter()}
 }
 
@@ -30,7 +30,7 @@ func (i *indexStream[T]) Iter() Iterator[Pair[int, T]] {
 	return i
 }
 
-func Map[T any, R any](transform func(T) R, it Iterable[T]) Iterator[R] {
+func Map[T any, R any, I Iterable[T]](transform func(T) R, it I) Iterator[R] {
 	return mapStream[T, R]{transform, it.Iter()}
 }
 
@@ -50,7 +50,7 @@ func (m mapStream[T, R]) Iter() Iterator[R] {
 	return m
 }
 
-func Filter[T any](predecate func(T) bool, it Iterable[T]) Iterator[T] {
+func Filter[T any, I Iterable[T]](predecate func(T) bool, it I) Iterator[T] {
 	return filterStream[T]{predecate, it.Iter()}
 }
 
@@ -72,7 +72,7 @@ func (f filterStream[T]) Iter() Iterator[T] {
 	return f
 }
 
-func Limit[T any](count int, it Iterable[T]) Iterator[T] {
+func Limit[T any, I Iterable[T]](count int, it I) Iterator[T] {
 	return &limitStream[T]{count, 0, it.Iter()}
 }
 
@@ -94,7 +94,7 @@ func (l *limitStream[T]) Iter() Iterator[T] {
 	return l
 }
 
-func Skip[T any](count int, it Iterable[T]) Iterator[T] {
+func Skip[T any, I Iterable[T]](count int, it I) Iterator[T] {
 	return &skipStream[T]{count, 0, it.Iter()}
 }
 
@@ -119,7 +119,7 @@ func (l *skipStream[T]) Iter() Iterator[T] {
 	return l
 }
 
-func Step[T any](count int, it Iterable[T]) Iterator[T] {
+func Step[T any, I Iterable[T]](count int, it I) Iterator[T] {
 	return &stepStream[T]{count, count, it.Iter()}
 }
 
@@ -145,7 +145,7 @@ func (l *stepStream[T]) Iter() Iterator[T] {
 	return l
 }
 
-func Concat[T any](left Iterable[T], right Iterable[T]) Iterator[T] {
+func Concat[T any, I Iterable[T]](left I, right I) Iterator[T] {
 	return &concatStream[T]{false, left.Iter(), right.Iter()}
 }
 
