@@ -51,9 +51,9 @@ func (a LinkedList[T]) Insert(index int, element T) bool {
 	return true
 }
 
-func (a LinkedList[T]) Remove(index int) (value T, ok bool) {
+func (a LinkedList[T]) Remove(index int) Option[T] {
 	if a.isOutOfBounds(index) {
-		return
+		return None[T]()
 	}
 	var item T
 	if index == 0 {
@@ -65,14 +65,14 @@ func (a LinkedList[T]) Remove(index int) (value T, ok bool) {
 		item = RemoveNode(a.inner.head.Next, a.inner.head, index-1)
 	}
 	a.inner.size--
-	return item, true
+	return Some(item)
 }
 
-func (a LinkedList[T]) Get(index int) (value T, ok bool) {
+func (a LinkedList[T]) Get(index int) Option[T] {
 	if a.isOutOfBounds(index) {
-		return
+		return None[T]()
 	}
-	return GetNode(a.inner.head, index), true
+	return Some(GetNode(a.inner.head, index))
 }
 
 func (a LinkedList[T]) GetOrPanic(index int) T {

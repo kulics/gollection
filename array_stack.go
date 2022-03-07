@@ -51,23 +51,23 @@ func (a ArrayStack[T]) Push(element T) {
 	a.inner.size++
 }
 
-func (a ArrayStack[T]) Pop() (value T, ok bool) {
+func (a ArrayStack[T]) Pop() Option[T] {
 	if a.IsEmpty() {
-		return
+		return None[T]()
 	}
 	var index = a.inner.size - 1
 	var item = a.inner.elements[index]
 	var empty T
 	a.inner.elements[index] = empty
 	a.inner.size--
-	return item, true
+	return Some(item)
 }
 
-func (a ArrayStack[T]) Peek() (value T, ok bool) {
+func (a ArrayStack[T]) Peek() Option[T] {
 	if a.IsEmpty() {
-		return
+		return None[T]()
 	}
-	return a.inner.elements[a.inner.size-1], true
+	return Some(a.inner.elements[a.inner.size-1])
 }
 
 func (a ArrayStack[T]) grow() {

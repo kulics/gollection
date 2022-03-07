@@ -6,6 +6,26 @@ func Sum[T Number, I Iterable[T]](it I) T {
 	return result
 }
 
+func Product[T Number, I Iterable[T]](it I) T {
+	var result T
+	ForEach(func(item Pair[int, T]) {
+		if item.First == 0 {
+			result = item.Second
+		} else {
+			result *= item.Second
+		}
+	}, WithIndex[T](it))
+	return result
+}
+
+func Average[T Number, I Iterable[T]](it I) float64 {
+	var result float64
+	ForEach(func(item Pair[int, T]) {
+		result += (float64(item.Second) - result) / float64(item.First+1)
+	}, WithIndex[T](it))
+	return result
+}
+
 func Count[T any, I Iterable[T]](it I) int {
 	var result int
 	ForEach(func(item T) { result++ }, it)
@@ -14,21 +34,25 @@ func Count[T any, I Iterable[T]](it I) int {
 
 func Max[T Number, I Iterable[T]](it I) T {
 	var result T
-	ForEach(func(item T) {
-		if result < item {
-			result = item
+	ForEach(func(item Pair[int, T]) {
+		if item.First == 0 {
+			result = item.Second
+		} else if result < item.Second {
+			result = item.Second
 		}
-	}, it)
+	}, WithIndex[T](it))
 	return result
 }
 
 func Min[T Number, I Iterable[T]](it I) T {
 	var result T
-	ForEach(func(item T) {
-		if result > item {
-			result = item
+	ForEach(func(item Pair[int, T]) {
+		if item.First == 0 {
+			result = item.Second
+		} else if result > item.Second {
+			result = item.Second
 		}
-	}, it)
+	}, WithIndex[T](it))
 	return result
 }
 

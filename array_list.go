@@ -108,16 +108,16 @@ func (a ArrayList[T]) InsertAll(index int, elements Collection[T]) bool {
 	return true
 }
 
-func (a ArrayList[T]) Remove(index int) (value T, ok bool) {
+func (a ArrayList[T]) Remove(index int) Option[T] {
 	if a.isOutOfBounds(index) {
-		return
+		return None[T]()
 	}
 	var removed = a.inner.elements[index]
 	copy(a.inner.elements[:index], a.inner.elements[index+1:])
 	var emptyValue T
 	a.inner.elements[a.inner.size-1] = emptyValue
 	a.inner.size--
-	return removed, true
+	return Some(removed)
 }
 
 func (a ArrayList[T]) Reserve(additional int) {

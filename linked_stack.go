@@ -44,19 +44,19 @@ func (a LinkedStack[T]) Push(element T) {
 	a.inner.size++
 }
 
-func (a LinkedStack[T]) Pop() (value T, ok bool) {
+func (a LinkedStack[T]) Pop() Option[T] {
 	if a.inner.head == nil {
-		return
+		return None[T]()
 	}
 	a.inner.size--
 	var item = a.inner.head.Value
 	a.inner.head = a.inner.head.Next
-	return item, true
+	return Some(item)
 }
 
-func (a LinkedStack[T]) Peek() (value T, ok bool) {
+func (a LinkedStack[T]) Peek() Option[T] {
 	if a.inner.head == nil {
-		return
+		return None[T]()
 	}
-	return a.inner.head.Value, true
+	return Some(a.inner.head.Value)
 }
