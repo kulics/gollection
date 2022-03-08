@@ -69,17 +69,17 @@ func (a LinkedList[T]) Remove(index int) Option[T] {
 }
 
 func (a LinkedList[T]) Get(index int) T {
-	if a.isOutOfBounds(index) {
-		panic(OutOfBounds)
+	if v, ok := a.TryGet(index).Get(); ok {
+		return v
 	}
-	return GetNode(a.inner.head, index)
+	panic(OutOfBounds)
 }
 
 func (a LinkedList[T]) Set(index int, newElement T) T {
-	if a.isOutOfBounds(index) {
-		panic(OutOfBounds)
+	if v, ok := a.TrySet(index, newElement).Get(); ok {
+		return v
 	}
-	return SetNode(a.inner.head, index, newElement)
+	panic(OutOfBounds)
 }
 
 func (a LinkedList[T]) GetAndSet(index int, set func(oldElement T) T) Pair[T, T] {
@@ -110,7 +110,7 @@ func (a LinkedList[T]) isOutOfBounds(index int) bool {
 	return false
 }
 
-func (a LinkedList[T]) Clean() {
+func (a LinkedList[T]) Clear() {
 	a.inner.head = nil
 	a.inner.size = 0
 }

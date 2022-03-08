@@ -33,9 +33,13 @@ type List[T any] interface {
 	TrySet(index int, newElement T) Option[T]
 
 	Prepend(element T)
+	PrependAll(elements Collection[T])
 	Append(element T)
+	AppendAll(elements Collection[T])
 	Insert(index int, element T) bool
+	InsertAll(index int, elements Collection[T]) bool
 	Remove(index int) Option[T]
+	Clear()
 }
 
 type Map[K any, V any] interface {
@@ -43,11 +47,13 @@ type Map[K any, V any] interface {
 
 	Get(key K) V
 	Put(key K, value V) Option[V]
+	PutAll(elements Collection[Pair[K, V]])
 	GetAndPut(key K, set func(oldValue Option[V]) V) Pair[V, Option[V]]
 	TryGet(key K) Option[V]
 
 	Remove(key K) Option[V]
 	Contains(key K) bool
+	Clear()
 }
 
 type Stack[T any] interface {

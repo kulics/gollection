@@ -52,22 +52,17 @@ func (a ArrayStack[T]) Push(element T) {
 }
 
 func (a ArrayStack[T]) Pop() T {
-	if a.IsEmpty() {
-		panic(OutOfBounds)
+	if v, ok := a.TryPop().Get(); ok {
+		return v
 	}
-	var index = a.inner.size - 1
-	var item = a.inner.elements[index]
-	var empty T
-	a.inner.elements[index] = empty
-	a.inner.size--
-	return item
+	panic(OutOfBounds)
 }
 
 func (a ArrayStack[T]) Peek() T {
-	if a.IsEmpty() {
-		panic(OutOfBounds)
+	if v, ok := a.TryPeek().Get(); ok {
+		return v
 	}
-	return a.inner.elements[a.inner.size-1]
+	panic(OutOfBounds)
 }
 
 func (a ArrayStack[T]) TryPop() Option[T] {

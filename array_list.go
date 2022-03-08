@@ -128,19 +128,17 @@ func (a ArrayList[T]) Reserve(additional int) {
 }
 
 func (a ArrayList[T]) Get(index int) T {
-	if a.isOutOfBounds(index) {
-		panic(OutOfBounds)
+	if v, ok := a.TryGet(index).Get(); ok {
+		return v
 	}
-	return a.inner.elements[index]
+	panic(OutOfBounds)
 }
 
 func (a ArrayList[T]) Set(index int, newElement T) T {
-	if a.isOutOfBounds(index) {
-		panic(OutOfBounds)
+	if v, ok := a.TrySet(index, newElement).Get(); ok {
+		return v
 	}
-	var oldElement = a.inner.elements[index]
-	a.inner.elements[index] = newElement
-	return oldElement
+	panic(OutOfBounds)
 }
 
 func (a ArrayList[T]) GetAndSet(index int, set func(oldElement T) T) Pair[T, T] {
@@ -168,7 +166,7 @@ func (a ArrayList[T]) TrySet(index int, newElement T) Option[T] {
 	return Some(oldElement)
 }
 
-func (a ArrayList[T]) Clean() {
+func (a ArrayList[T]) Clear() {
 	var emptyValue T
 	for i := 0; i < a.inner.size; i++ {
 		a.inner.elements[i] = emptyValue

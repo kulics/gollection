@@ -45,20 +45,17 @@ func (a LinkedStack[T]) Push(element T) {
 }
 
 func (a LinkedStack[T]) Pop() T {
-	if a.inner.head == nil {
-		panic(OutOfBounds)
+	if v, ok := a.TryPop().Get(); ok {
+		return v
 	}
-	a.inner.size--
-	var item = a.inner.head.Value
-	a.inner.head = a.inner.head.Next
-	return item
+	panic(OutOfBounds)
 }
 
 func (a LinkedStack[T]) Peek() T {
-	if a.inner.head == nil {
-		panic(OutOfBounds)
+	if v, ok := a.TryPeek().Get(); ok {
+		return v
 	}
-	return a.inner.head.Value
+	panic(OutOfBounds)
 }
 
 func (a LinkedStack[T]) TryPop() Option[T] {
