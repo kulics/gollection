@@ -18,23 +18,23 @@ func (a Option[T]) Get() (value T, ok bool) {
 	return a.value, a.ok
 }
 
-func (a Option[T]) GetOrPanic() T {
+func (a Option[T]) OrPanic() T {
 	if !a.ok {
 		panic("none value of option")
 	}
 	return a.value
 }
 
-func (a Option[T]) GetOrDefault(value T) T {
+func (a Option[T]) OrElse(value T) T {
 	if !a.ok {
 		return value
 	}
 	return a.value
 }
 
-func (a Option[T]) GetOrElse(action func() T) T {
+func (a Option[T]) OrGet(get func() T) T {
 	if !a.ok {
-		return action()
+		return get()
 	}
 	return a.value
 }

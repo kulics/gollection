@@ -26,9 +26,11 @@ type Collection[T any] interface {
 type List[T any] interface {
 	Collection[T]
 
-	Get(index int) Option[T]
-	GetOrPanic(index int) T
-	Set(index int, newElement T) Option[T]
+	Get(index int) T
+	Set(index int, newElement T) T
+	GetAndSet(index int, set func(oldElement T) T) Pair[T, T]
+	TryGet(index int) Option[T]
+	TrySet(index int, newElement T) Option[T]
 
 	Prepend(element T)
 	Append(element T)
@@ -39,10 +41,22 @@ type List[T any] interface {
 type Map[K any, V any] interface {
 	Collection[Pair[K, V]]
 
-	Get(key K) Option[V]
-	GetOrPanic(key K) V
-	Put(key K, value V)
+	Get(key K) V
+	Put(key K, value V) Option[V]
+	GetAndPut(key K, set func(oldValue Option[V]) V) Pair[V, Option[V]]
+	TryGet(key K) Option[V]
 
 	Remove(key K) Option[V]
-	Contains(key V) bool
+	Contains(key K) bool
+}
+
+type Stack[T any] interface {
+	Size() int
+	IsEmpty() bool
+
+	Push(element T)
+	Pop() T
+	Peek() T
+	TryPop() Option[T]
+	TryPeek() Option[T]
 }

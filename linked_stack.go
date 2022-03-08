@@ -44,7 +44,24 @@ func (a LinkedStack[T]) Push(element T) {
 	a.inner.size++
 }
 
-func (a LinkedStack[T]) Pop() Option[T] {
+func (a LinkedStack[T]) Pop() T {
+	if a.inner.head == nil {
+		panic(OutOfBounds)
+	}
+	a.inner.size--
+	var item = a.inner.head.Value
+	a.inner.head = a.inner.head.Next
+	return item
+}
+
+func (a LinkedStack[T]) Peek() T {
+	if a.inner.head == nil {
+		panic(OutOfBounds)
+	}
+	return a.inner.head.Value
+}
+
+func (a LinkedStack[T]) TryPop() Option[T] {
 	if a.inner.head == nil {
 		return None[T]()
 	}
@@ -54,7 +71,7 @@ func (a LinkedStack[T]) Pop() Option[T] {
 	return Some(item)
 }
 
-func (a LinkedStack[T]) Peek() Option[T] {
+func (a LinkedStack[T]) TryPeek() Option[T] {
 	if a.inner.head == nil {
 		return None[T]()
 	}

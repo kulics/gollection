@@ -23,6 +23,17 @@ func SetNode[T any](n *Node[T], i int, v T) T {
 	}
 }
 
+func GetAndSetNode[T any](n *Node[T], i int, set func(oldElement T) T) Pair[T, T] {
+	if i == 0 {
+		var oldValue = n.Value
+		var newValue = set(oldValue)
+		n.Value = newValue
+		return PairOf(newValue, oldValue)
+	} else {
+		return GetAndSetNode(n.Next, i-1, set)
+	}
+}
+
 func PrependNode[T any](n *Node[T], v T) {
 	if n == nil {
 		*n = Node[T]{v, nil}

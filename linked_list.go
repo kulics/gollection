@@ -6,7 +6,7 @@ func LinkedListOf[T any](elements ...T) LinkedList[T] {
 		head *Node[T]
 	}{0, nil}}
 	for _, v := range elements {
-		list.Prepend(v)
+		list.Append(v)
 	}
 	return list
 }
@@ -16,7 +16,7 @@ func LinkedListFrom[T any, I Collection[T]](collection I) LinkedList[T] {
 		size int
 		head *Node[T]
 	}{0, nil}}
-	ForEach(list.Prepend, collection)
+	ForEach(list.Append, collection)
 	return list
 }
 
@@ -68,21 +68,35 @@ func (a LinkedList[T]) Remove(index int) Option[T] {
 	return Some(item)
 }
 
-func (a LinkedList[T]) Get(index int) Option[T] {
+func (a LinkedList[T]) Get(index int) T {
+	if a.isOutOfBounds(index) {
+		panic(OutOfBounds)
+	}
+	return GetNode(a.inner.head, index)
+}
+
+func (a LinkedList[T]) Set(index int, newElement T) T {
+	if a.isOutOfBounds(index) {
+		panic(OutOfBounds)
+	}
+	return SetNode(a.inner.head, index, newElement)
+}
+
+func (a LinkedList[T]) GetAndSet(index int, set func(oldElement T) T) Pair[T, T] {
+	if a.isOutOfBounds(index) {
+		panic(OutOfBounds)
+	}
+	return GetAndSetNode(a.inner.head, index, set)
+}
+
+func (a LinkedList[T]) TryGet(index int) Option[T] {
 	if a.isOutOfBounds(index) {
 		return None[T]()
 	}
 	return Some(GetNode(a.inner.head, index))
 }
 
-func (a LinkedList[T]) GetOrPanic(index int) T {
-	if a.isOutOfBounds(index) {
-		panic("out of bounds")
-	}
-	return GetNode(a.inner.head, index)
-}
-
-func (a LinkedList[T]) Set(index int, newElement T) Option[T] {
+func (a LinkedList[T]) TrySet(index int, newElement T) Option[T] {
 	if a.isOutOfBounds(index) {
 		return None[T]()
 	}

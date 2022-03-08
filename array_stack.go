@@ -51,7 +51,26 @@ func (a ArrayStack[T]) Push(element T) {
 	a.inner.size++
 }
 
-func (a ArrayStack[T]) Pop() Option[T] {
+func (a ArrayStack[T]) Pop() T {
+	if a.IsEmpty() {
+		panic(OutOfBounds)
+	}
+	var index = a.inner.size - 1
+	var item = a.inner.elements[index]
+	var empty T
+	a.inner.elements[index] = empty
+	a.inner.size--
+	return item
+}
+
+func (a ArrayStack[T]) Peek() T {
+	if a.IsEmpty() {
+		panic(OutOfBounds)
+	}
+	return a.inner.elements[a.inner.size-1]
+}
+
+func (a ArrayStack[T]) TryPop() Option[T] {
 	if a.IsEmpty() {
 		return None[T]()
 	}
@@ -63,7 +82,7 @@ func (a ArrayStack[T]) Pop() Option[T] {
 	return Some(item)
 }
 
-func (a ArrayStack[T]) Peek() Option[T] {
+func (a ArrayStack[T]) TryPeek() Option[T] {
 	if a.IsEmpty() {
 		return None[T]()
 	}

@@ -127,21 +127,39 @@ func (a ArrayList[T]) Reserve(additional int) {
 	}
 }
 
-func (a ArrayList[T]) Get(index int) Option[T] {
+func (a ArrayList[T]) Get(index int) T {
+	if a.isOutOfBounds(index) {
+		panic(OutOfBounds)
+	}
+	return a.inner.elements[index]
+}
+
+func (a ArrayList[T]) Set(index int, newElement T) T {
+	if a.isOutOfBounds(index) {
+		panic(OutOfBounds)
+	}
+	var oldElement = a.inner.elements[index]
+	a.inner.elements[index] = newElement
+	return oldElement
+}
+
+func (a ArrayList[T]) GetAndSet(index int, set func(oldElement T) T) Pair[T, T] {
+	if a.isOutOfBounds(index) {
+		panic(OutOfBounds)
+	}
+	var oldElement = a.inner.elements[index]
+	var newElement = set(oldElement)
+	return PairOf(newElement, oldElement)
+}
+
+func (a ArrayList[T]) TryGet(index int) Option[T] {
 	if a.isOutOfBounds(index) {
 		return None[T]()
 	}
 	return Some(a.inner.elements[index])
 }
 
-func (a ArrayList[T]) GetOrPanic(index int) T {
-	if a.isOutOfBounds(index) {
-		panic("out of bounds")
-	}
-	return a.inner.elements[index]
-}
-
-func (a ArrayList[T]) Set(index int, newElement T) Option[T] {
+func (a ArrayList[T]) TrySet(index int, newElement T) Option[T] {
 	if a.isOutOfBounds(index) {
 		return None[T]()
 	}
@@ -195,7 +213,7 @@ type arrayListIterator[T any] struct {
 func (a *arrayListIterator[T]) Next() Option[T] {
 	if a.index < a.source.Size()-1 {
 		a.index++
-		return a.source.Get(a.index)
+		return a.source.TryGet(a.index)
 	}
 	return None[T]()
 }

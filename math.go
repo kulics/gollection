@@ -1,5 +1,13 @@
 package main
 
+func Inc[T Number](a T) T {
+	return a + 1
+}
+
+func Dec[T Number](a T) T {
+	return a - 1
+}
+
 func Add[T Number](a T) func(b T) T {
 	return func(b T) T {
 		return a + b
