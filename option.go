@@ -1,20 +1,20 @@
 package main
 
 func Some[T any](a T) Option[T] {
-	return Option[T]{ a, true }
+	return Option[T]{a, true}
 }
 
 func None[T any]() Option[T] {
 	var a T
-	return Option[T]{ a, false }
+	return Option[T]{a, false}
 }
 
 type Option[T any] struct {
 	value T
-	ok bool
+	ok    bool
 }
 
-func (a Option[T]) Get() (value T, ok bool)  {
+func (a Option[T]) Get() (value T, ok bool) {
 	return a.value, a.ok
 }
 
@@ -57,4 +57,11 @@ func (a Option[T]) IfNone(action func()) {
 	if !a.ok {
 		action()
 	}
+}
+
+func MapSome[T any, R any](mapper func(T) R, a Option[T]) Option[R] {
+	if a.ok {
+		return Some(mapper(a.value))
+	}
+	return None[R]()
 }
