@@ -1,4 +1,4 @@
-package main
+package gollection
 
 func LinkedListOf[T any](elements ...T) LinkedList[T] {
 	var list = LinkedList[T]{&struct {

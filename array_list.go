@@ -1,4 +1,4 @@
-package main
+package gollection
 
 func ArrayListOf[T any](elements ...T) ArrayList[T] {
 	var array = make([]T, len(elements))

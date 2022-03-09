@@ -1,4 +1,4 @@
-package main
+package gollection
 
 type Node[T any] struct {
 	Value T

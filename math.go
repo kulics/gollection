@@ -1,4 +1,4 @@
-package main
+package gollection
 
 func Inc[T Number](a T) T {
 	return a + 1

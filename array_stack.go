@@ -1,4 +1,4 @@
-package main
+package gollection
 
 func ArrayStackOf[T any](elements ...T) ArrayStack[T] {
 	var array = make([]T, len(elements))

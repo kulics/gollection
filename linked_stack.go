@@ -1,4 +1,4 @@
-package main
+package gollection
 
 func LinkedStackOf[T any](elements ...T) LinkedStack[T] {
 	var stack = LinkedStack[T]{&struct {

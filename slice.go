@@ -1,4 +1,4 @@
-package main
+package gollection
 
 type Slice[T any] struct {
 	Source []T

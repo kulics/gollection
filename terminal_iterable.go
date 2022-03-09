@@ -1,4 +1,4 @@
-package main
+package gollection
 
 func Sum[T Number, I Iterable[T]](it I) T {
 	var result T

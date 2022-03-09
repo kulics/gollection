@@ -1,4 +1,4 @@
-package main
+package gollection
 
 type Pair[T1 any, T2 any] struct {
 	First  T1

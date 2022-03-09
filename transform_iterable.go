@@ -1,4 +1,4 @@
-package main
+package gollection
 
 func WithIndex[T any, I Iterable[T]](it I) IndexStream[T] {
 	return IndexStream[T]{&struct {

@@ -1,4 +1,4 @@
-package main
+package gollection
 
 type Number interface {
 	~int | ~int64 | ~int32 | ~int16 | ~int8 |
