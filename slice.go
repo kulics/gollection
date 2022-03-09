@@ -1,27 +1,21 @@
 package gollection
 
-type Slice[T any] struct {
-	Source []T
+func ToSlice[T any](a []T) Slice[T] {
+	return Slice[T](a)
 }
 
+type Slice[T any] []T
+
 func (s Slice[T]) Iter() Iterator[T] {
-	return SliceIter(s.Source)
+	return &sliceIterator[T]{-1, s}
 }
 
 func (s Slice[T]) Size() int {
-	return len(s.Source)
+	return len(s)
 }
 
 func (s Slice[T]) IsEmpty() bool {
-	return len(s.Source) == 0
-}
-
-func ToSlice[T any](s []T) Slice[T] {
-	return Slice[T]{s}
-}
-
-func SliceIter[T any](source []T) Iterator[T] {
-	return &sliceIterator[T]{-1, source}
+	return len(s) == 0
 }
 
 type sliceIterator[T any] struct {

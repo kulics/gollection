@@ -7,14 +7,16 @@ import (
 )
 
 func main() {
+	printItem := func(i int) {
+		fmt.Println(i)
+	}
+	var slice = []int{1, 2, 3}
+	ForEach(printItem, ToSlice(slice))
 	var stack Stack[int] = LinkedStackOf(1, 2, 3)
 	stack = ArrayStackOf(1, 2, 3)
 	fmt.Println(stack)
 	var list List[int] = ArrayListOf(1, 2, 3, 4, 5)
 	list = ArrayListOf(1, 2, 3, 4, 5)
-	printItem := func(i int) {
-		fmt.Println(i)
-	}
 	ForEach(printItem, list)
 	list.Append(5)
 	list.Append(4)
