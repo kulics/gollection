@@ -1,5 +1,7 @@
 package gollection
 
+import . "github.com/kulics/gollection/union"
+
 type Iterable[T any] interface {
 	Iter() Iterator[T]
 }

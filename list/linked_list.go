@@ -1,6 +1,10 @@
 package list
 
-import . "github.com/kulics/gollection"
+import (
+	. "github.com/kulics/gollection"
+	. "github.com/kulics/gollection/tuple"
+	. "github.com/kulics/gollection/union"
+)
 
 func LinkedListOf[T any](elements ...T) LinkedList[T] {
 	var inner = &linkedList[T]{0, nil}

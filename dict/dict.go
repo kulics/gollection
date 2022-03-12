@@ -1,6 +1,10 @@
 package dict
 
-import . "github.com/kulics/gollection"
+import (
+	. "github.com/kulics/gollection"
+	. "github.com/kulics/gollection/tuple"
+	. "github.com/kulics/gollection/union"
+)
 
 type Dict[K any, V any] interface {
 	Collection[Pair[K, V]]

@@ -1,6 +1,6 @@
 package list
 
-import . "github.com/kulics/gollection"
+import . "github.com/kulics/gollection/tuple"
 
 type node[T any] struct {
 	Value T

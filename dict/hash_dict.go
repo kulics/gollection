@@ -5,6 +5,8 @@ import (
 
 	. "github.com/kulics/gollection"
 	. "github.com/kulics/gollection/math"
+	. "github.com/kulics/gollection/tuple"
+	. "github.com/kulics/gollection/union"
 )
 
 const defaultElementsSize = 10

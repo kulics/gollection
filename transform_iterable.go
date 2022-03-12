@@ -1,5 +1,10 @@
 package gollection
 
+import (
+	. "github.com/kulics/gollection/tuple"
+	. "github.com/kulics/gollection/union"
+)
+
 func Indexer[T any, I Iterable[T]](it I) IndexerStream[T] {
 	return IndexerStream[T]{&struct {
 		index    int

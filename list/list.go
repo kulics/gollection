@@ -1,6 +1,10 @@
 package list
 
-import . "github.com/kulics/gollection"
+import (
+	. "github.com/kulics/gollection"
+	. "github.com/kulics/gollection/tuple"
+	. "github.com/kulics/gollection/union"
+)
 
 type List[T any] interface {
 	Collection[T]

@@ -1,6 +1,9 @@
 package stack
 
-import . "github.com/kulics/gollection"
+import (
+	. "github.com/kulics/gollection"
+	. "github.com/kulics/gollection/union"
+)
 
 type Stack[T any] interface {
 	Collection[T]

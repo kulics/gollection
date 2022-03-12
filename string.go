@@ -1,5 +1,7 @@
 package gollection
 
+import . "github.com/kulics/gollection/union"
+
 func ToString(a string) String {
 	return String(a)
 }

@@ -4,6 +4,8 @@ import (
 	. "github.com/kulics/gollection"
 	. "github.com/kulics/gollection/dict"
 	. "github.com/kulics/gollection/math"
+	. "github.com/kulics/gollection/tuple"
+	. "github.com/kulics/gollection/union"
 )
 
 func HashSetOf[T comparable](hasher func(data T) int, elements ...T) HashSet[T] {
@@ -24,7 +26,7 @@ func StringSetOf[T ~string](elements ...T) HashSet[T] {
 }
 
 func MakeHashSet[T comparable](hasher func(data T) int, capacity int) HashSet[T] {
-	return HashSet[T]{MakeHashDict[T, void](hasher, capacity)}
+	return HashSet[T]{MakeHashDict[T, Void](hasher, capacity)}
 }
 
 func MakeNumberSet[T Number](capacity int) HashSet[T] {
@@ -53,12 +55,8 @@ func StringSetFrom[T ~string, I Collection[T]](collection I) HashSet[T] {
 }
 
 type HashSet[T comparable] struct {
-	inner HashDict[T, void]
+	inner HashDict[T, Void]
 }
-
-type void struct{}
-
-var null = void{}
 
 func (a HashSet[T]) Size() int {
 	return a.inner.Size()
@@ -69,7 +67,7 @@ func (a HashSet[T]) IsEmpty() bool {
 }
 
 func (a HashSet[T]) Put(element T) bool {
-	return a.inner.Put(element, null).IsSome()
+	return a.inner.Put(element, Void{}).IsSome()
 }
 
 func (a HashSet[T]) PutAll(elements Collection[T]) {
@@ -114,7 +112,7 @@ func (a HashSet[T]) ToSlice() []T {
 }
 
 type hashSetIterator[T comparable] struct {
-	source Iterator[Pair[T, void]]
+	source Iterator[Pair[T, Void]]
 }
 
 func (a *hashSetIterator[T]) Next() Option[T] {

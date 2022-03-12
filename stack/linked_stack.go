@@ -1,6 +1,9 @@
 package stack
 
-import . "github.com/kulics/gollection"
+import (
+	. "github.com/kulics/gollection"
+	. "github.com/kulics/gollection/union"
+)
 
 func LinkedStackOf[T any](elements ...T) LinkedStack[T] {
 	var inner = &linkedStack[T]{0, nil}
