@@ -1,10 +1,8 @@
 package gollection
 
 func LinkedStackOf[T any](elements ...T) LinkedStack[T] {
-	var stack = LinkedStack[T]{&struct {
-		size int
-		head *Node[T]
-	}{0, nil}}
+	var inner = &linkedStack[T]{0, nil}
+	var stack = LinkedStack[T]{inner}
 	for _, v := range elements {
 		stack.Push(v)
 	}
@@ -12,19 +10,19 @@ func LinkedStackOf[T any](elements ...T) LinkedStack[T] {
 }
 
 func LinkedStackFrom[T any, I Collection[T]](collection I) LinkedStack[T] {
-	var stack = LinkedStack[T]{&struct {
-		size int
-		head *Node[T]
-	}{0, nil}}
+	var inner = &linkedStack[T]{0, nil}
+	var stack = LinkedStack[T]{inner}
 	ForEach(stack.Push, collection)
 	return stack
 }
 
 type LinkedStack[T any] struct {
-	inner *struct {
-		size int
-		head *Node[T]
-	}
+	inner *linkedStack[T]
+}
+
+type linkedStack[T any] struct {
+	size int
+	head *Node[T]
 }
 
 func (a LinkedStack[T]) Size() int {

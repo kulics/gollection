@@ -6,16 +6,22 @@ func ToSlice[T any](a []T) Slice[T] {
 
 type Slice[T any] []T
 
-func (s Slice[T]) Iter() Iterator[T] {
-	return &sliceIterator[T]{-1, s}
+func (a Slice[T]) Iter() Iterator[T] {
+	return &sliceIterator[T]{-1, a}
 }
 
-func (s Slice[T]) Size() int {
-	return len(s)
+func (a Slice[T]) Size() int {
+	return len(a)
 }
 
-func (s Slice[T]) IsEmpty() bool {
-	return len(s) == 0
+func (a Slice[T]) IsEmpty() bool {
+	return len(a) == 0
+}
+
+func (a Slice[T]) ToSlice() []T {
+	var slice = make([]T, len(a))
+	copy(slice, a)
+	return slice
 }
 
 type sliceIterator[T any] struct {
@@ -23,14 +29,14 @@ type sliceIterator[T any] struct {
 	source []T
 }
 
-func (s *sliceIterator[T]) Next() Option[T] {
-	if s.index < len(s.source)-1 {
-		s.index++
-		return Some(s.source[s.index])
+func (a *sliceIterator[T]) Next() Option[T] {
+	if a.index < len(a.source)-1 {
+		a.index++
+		return Some(a.source[a.index])
 	}
 	return None[T]()
 }
 
-func (s *sliceIterator[T]) Iter() Iterator[T] {
-	return s
+func (a *sliceIterator[T]) Iter() Iterator[T] {
+	return a
 }

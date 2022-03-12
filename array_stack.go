@@ -3,17 +3,13 @@ package gollection
 func ArrayStackOf[T any](elements ...T) ArrayStack[T] {
 	var array = make([]T, len(elements))
 	copy(array, elements)
-	return ArrayStack[T]{&struct {
-		elements []T
-		size     int
-	}{array, len(elements)}}
+	var inner = &arrayStack[T]{array, len(elements)}
+	return ArrayStack[T]{inner}
 }
 
 func MakeArrayStack[T any](capacity int) ArrayStack[T] {
-	return ArrayStack[T]{&struct {
-		elements []T
-		size     int
-	}{make([]T, capacity), 0}}
+	var inner = &arrayStack[T]{make([]T, capacity), 0}
+	return ArrayStack[T]{inner}
 }
 
 func ArrayStackFrom[T any, I Collection[T]](collection I) ArrayStack[T] {
@@ -22,17 +18,17 @@ func ArrayStackFrom[T any, I Collection[T]](collection I) ArrayStack[T] {
 	ForEach(func(item Pair[int, T]) {
 		array[item.First] = item.Second
 	}, WithIndex[T](collection))
-	return ArrayStack[T]{&struct {
-		elements []T
-		size     int
-	}{array, size}}
+	var inner = &arrayStack[T]{array, size}
+	return ArrayStack[T]{inner}
 }
 
 type ArrayStack[T any] struct {
-	inner *struct {
-		elements []T
-		size     int
-	}
+	inner *arrayStack[T]
+}
+
+type arrayStack[T any] struct {
+	elements []T
+	size     int
 }
 
 func (a ArrayStack[T]) Size() int {

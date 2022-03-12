@@ -18,6 +18,10 @@ func (a String) IsEmpty() bool {
 	return len(a) == 0
 }
 
+func (a String) ToSlice() []rune {
+	return []rune(a)
+}
+
 type stringIterator struct {
 	index  int
 	source []rune

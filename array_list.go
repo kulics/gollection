@@ -3,36 +3,27 @@ package gollection
 func ArrayListOf[T any](elements ...T) ArrayList[T] {
 	var array = make([]T, len(elements))
 	copy(array, elements)
-	return ArrayList[T]{&struct {
-		elements []T
-		size     int
-	}{array, len(elements)}}
+	var inner = &arrayList[T]{array, len(elements)}
+	return ArrayList[T]{inner}
 }
 
 func MakeArrayList[T any](capacity int) ArrayList[T] {
-	return ArrayList[T]{&struct {
-		elements []T
-		size     int
-	}{make([]T, capacity), 0}}
+	var inner = &arrayList[T]{make([]T, capacity), 0}
+	return ArrayList[T]{inner}
 }
 
 func ArrayListFrom[T any, I Collection[T]](collection I) ArrayList[T] {
-	var size = collection.Size()
-	var array = make([]T, size)
-	ForEach(func(item Pair[int, T]) {
-		array[item.First] = item.Second
-	}, WithIndex[T](collection))
-	return ArrayList[T]{&struct {
-		elements []T
-		size     int
-	}{array, size}}
+	var inner = &arrayList[T]{collection.ToSlice(), collection.Size()}
+	return ArrayList[T]{inner}
 }
 
 type ArrayList[T any] struct {
-	inner *struct {
-		elements []T
-		size     int
-	}
+	inner *arrayList[T]
+}
+
+type arrayList[T any] struct {
+	elements []T
+	size     int
 }
 
 func (a ArrayList[T]) Prepend(element T) {
@@ -184,6 +175,12 @@ func (a ArrayList[T]) IsEmpty() bool {
 
 func (a ArrayList[T]) Iter() Iterator[T] {
 	return &arrayListIterator[T]{-1, a}
+}
+
+func (a ArrayList[T]) ToSlice() []T {
+	var slice = make([]T, a.inner.size)
+	copy(slice, a.inner.elements)
+	return slice
 }
 
 func (a ArrayList[T]) isOutOfBounds(index int) bool {

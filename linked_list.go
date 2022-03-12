@@ -1,10 +1,8 @@
 package gollection
 
 func LinkedListOf[T any](elements ...T) LinkedList[T] {
-	var list = LinkedList[T]{&struct {
-		size int
-		head *Node[T]
-	}{0, nil}}
+	var inner = &linkedList[T]{0, nil}
+	var list = LinkedList[T]{inner}
 	for _, v := range elements {
 		list.Append(v)
 	}
@@ -12,19 +10,19 @@ func LinkedListOf[T any](elements ...T) LinkedList[T] {
 }
 
 func LinkedListFrom[T any, I Collection[T]](collection I) LinkedList[T] {
-	var list = LinkedList[T]{&struct {
-		size int
-		head *Node[T]
-	}{0, nil}}
+	var inner = &linkedList[T]{0, nil}
+	var list = LinkedList[T]{inner}
 	ForEach(list.Append, collection)
 	return list
 }
 
 type LinkedList[T any] struct {
-	inner *struct {
-		size int
-		head *Node[T]
-	}
+	inner *linkedList[T]
+}
+
+type linkedList[T any] struct {
+	size int
+	head *Node[T]
 }
 
 func (a LinkedList[T]) Prepend(element T) {
@@ -125,6 +123,14 @@ func (a LinkedList[T]) IsEmpty() bool {
 
 func (a LinkedList[T]) Iter() Iterator[T] {
 	return &LinkedListIterator[T]{a.inner.head}
+}
+
+func (a LinkedList[T]) ToSlice() []T {
+	var arr = make([]T, a.Size())
+	ForEach(func(t T) {
+		arr = append(arr, t)
+	}, a)
+	return arr
 }
 
 type LinkedListIterator[T any] struct {
