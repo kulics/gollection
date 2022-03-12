@@ -21,24 +21,11 @@ func StringHasher[T ~string](t T) int {
 
 func HashDictOf[K comparable, V any](hasher func(data K) int, elements ...Pair[K, V]) HashDict[K, V] {
 	var size = len(elements)
-	var buckets = make([]int, bucketsSizeFor(size))
-	for i := 0; i < len(buckets); i++ {
-		buckets[i] = -1
-	}
-	if size < defaultElementsSize {
-		size = defaultElementsSize
-	}
-	var inner = &hashMap[K, V]{
-		buckets:    buckets,
-		entries:    make([]entry[K, V], size),
-		hasher:     hasher,
-		loadFactor: 1,
-	}
-	var hashmap = HashDict[K, V]{inner}
+	var dict = MakeHashDict[K, V](hasher, size)
 	for _, v := range elements {
-		hashmap.Put(v.First, v.Second)
+		dict.Put(v.First, v.Second)
 	}
-	return hashmap
+	return dict
 }
 
 func NumberDictOf[K Number, V any](elements ...Pair[K, V]) HashDict[K, V] {
@@ -77,20 +64,7 @@ func MakeStringDict[K ~string, V any](capacity int) HashDict[K, V] {
 
 func HashDictFrom[K comparable, V any, I Collection[Pair[K, V]]](hasher func(data K) int, collection I) HashDict[K, V] {
 	var size = collection.Size()
-	var buckets = make([]int, bucketsSizeFor(size))
-	for i := 0; i < len(buckets); i++ {
-		buckets[i] = -1
-	}
-	if size < defaultElementsSize {
-		size = defaultElementsSize
-	}
-	var inner = &hashMap[K, V]{
-		buckets:    buckets,
-		entries:    make([]entry[K, V], size),
-		hasher:     hasher,
-		loadFactor: 1,
-	}
-	var dict = HashDict[K, V]{inner}
+	var dict = MakeHashDict[K, V](hasher, size)
 	ForEach(func(t Pair[K, V]) {
 		dict.Put(t.First, t.Second)
 	}, collection)
