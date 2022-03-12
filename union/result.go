@@ -58,10 +58,3 @@ func (a Result[T]) IfErr(action func()) {
 		action()
 	}
 }
-
-func MapOk[T any, R any](mapper func(T) R, a Result[T]) Result[R] {
-	if a.err == nil {
-		return Ok(mapper(a.value))
-	}
-	return Err[R](a.err)
-}

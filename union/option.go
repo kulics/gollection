@@ -58,10 +58,3 @@ func (a Option[T]) IfNone(action func()) {
 		action()
 	}
 }
-
-func MapSome[T any, R any](mapper func(T) R, a Option[T]) Option[R] {
-	if a.ok {
-		return Some(mapper(a.value))
-	}
-	return None[R]()
-}
