@@ -10,15 +10,10 @@ const defaultElementsSize = 10
 
 func ArrayListOf[T any](elements ...T) ArrayList[T] {
 	var size = len(elements)
-	var array []T
-	if size == 0 {
-		array = make([]T, defaultElementsSize)
-	} else {
-		array = make([]T, size)
-		copy(array, elements)
-	}
-	var inner = &arrayList[T]{array, size}
-	return ArrayList[T]{inner}
+	var list = MakeArrayList[T](size)
+	copy(list.inner.elements, elements)
+	list.inner.size = size
+	return list
 }
 
 func MakeArrayList[T any](capacity int) ArrayList[T] {
@@ -86,21 +81,20 @@ func (a ArrayList[T]) AppendAll(elements Collection[T]) {
 	}, elements)
 }
 
-func (a ArrayList[T]) Insert(index int, element T) bool {
+func (a ArrayList[T]) Insert(index int, element T) {
 	if index < 0 || index > a.inner.size {
-		return false
+		panic(OutOfBounds)
 	}
 	if len(a.inner.elements) < a.inner.size+1 {
 		a.grow(1)
 	}
 	copy(a.inner.elements[index+1:], a.inner.elements[index:])
 	a.inner.elements[index] = element
-	return true
 }
 
-func (a ArrayList[T]) InsertAll(index int, elements Collection[T]) bool {
+func (a ArrayList[T]) InsertAll(index int, elements Collection[T]) {
 	if index < 0 || index > a.inner.size {
-		return false
+		panic(OutOfBounds)
 	}
 	var additional = elements.Size()
 	if len(a.inner.elements) < a.inner.size+additional {
@@ -113,19 +107,18 @@ func (a ArrayList[T]) InsertAll(index int, elements Collection[T]) bool {
 		a.inner.size++
 		i++
 	}, elements)
-	return true
 }
 
-func (a ArrayList[T]) Remove(index int) Option[T] {
+func (a ArrayList[T]) Remove(index int) T {
 	if a.isOutOfBounds(index) {
-		return None[T]()
+		panic(OutOfBounds)
 	}
 	var removed = a.inner.elements[index]
 	copy(a.inner.elements[:index], a.inner.elements[index+1:])
 	var emptyValue T
 	a.inner.elements[a.inner.size-1] = emptyValue
 	a.inner.size--
-	return Some(removed)
+	return removed
 }
 
 func (a ArrayList[T]) Reserve(additional int) {

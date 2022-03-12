@@ -9,15 +9,10 @@ const defaultElementsSize = 10
 
 func ArrayStackOf[T any](elements ...T) ArrayStack[T] {
 	var size = len(elements)
-	var array []T
-	if size == 0 {
-		array = make([]T, defaultElementsSize)
-	} else {
-		array = make([]T, size)
-		copy(array, elements)
-	}
-	var inner = &arrayStack[T]{array, size}
-	return ArrayStack[T]{inner}
+	var stack = MakeArrayStack[T](size)
+	copy(stack.inner.elements, elements)
+	stack.inner.size = size
+	return stack
 }
 
 func MakeArrayStack[T any](capacity int) ArrayStack[T] {

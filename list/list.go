@@ -19,8 +19,8 @@ type List[T any] interface {
 	PrependAll(elements Collection[T])
 	Append(element T)
 	AppendAll(elements Collection[T])
-	Insert(index int, element T) bool
-	InsertAll(index int, elements Collection[T]) bool
-	Remove(index int) Option[T]
+	Insert(index int, element T)
+	InsertAll(index int, elements Collection[T])
+	Remove(index int) T
 	Clear()
 }
