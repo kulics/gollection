@@ -17,7 +17,7 @@ func LinkedListOf[T any](elements ...T) LinkedList[T] {
 
 func LinkedListFrom[T any, I Collection[T]](collection I) LinkedList[T] {
 	var list = LinkedListOf[T]()
-	ForEach(list.Append, collection)
+	list.AppendAll(collection)
 	return list
 }
 
@@ -223,6 +223,10 @@ func (a LinkedList[T]) ToSlice() []T {
 		arr = append(arr, t)
 	}, a)
 	return arr
+}
+
+func (a LinkedList[T]) Clone() LinkedList[T] {
+	return LinkedListFrom[T](a)
 }
 
 func (a LinkedList[T]) isOutOfBounds(index int) bool {

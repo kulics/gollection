@@ -111,6 +111,10 @@ func (a HashSet[T]) ToSlice() []T {
 	return arr
 }
 
+func (a HashSet[T]) Clone() HashSet[T] {
+	return HashSet[T]{a.inner.Clone()}
+}
+
 type hashSetIterator[T comparable] struct {
 	source Iterator[Pair[T, Void]]
 }

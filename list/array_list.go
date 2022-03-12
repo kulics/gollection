@@ -188,9 +188,19 @@ func (a ArrayList[T]) Iter() Iterator[T] {
 }
 
 func (a ArrayList[T]) ToSlice() []T {
-	var slice = make([]T, a.inner.size)
+	var slice = make([]T, a.Size())
 	copy(slice, a.inner.elements)
 	return slice
+}
+
+func (a ArrayList[T]) Clone() ArrayList[T] {
+	var elements = make([]T, len(a.inner.elements))
+	copy(elements, a.inner.elements)
+	var inner = &arrayList[T]{
+		elements: elements,
+		size:     a.inner.size,
+	}
+	return ArrayList[T]{inner}
 }
 
 func (a ArrayList[T]) isOutOfBounds(index int) bool {

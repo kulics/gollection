@@ -96,6 +96,16 @@ func (a ArrayStack[T]) ToSlice() []T {
 	return arr
 }
 
+func (a ArrayStack[T]) Clone() ArrayStack[T] {
+	var elements = make([]T, len(a.inner.elements))
+	copy(elements, a.inner.elements)
+	var inner = &arrayStack[T]{
+		elements: elements,
+		size:     a.inner.size,
+	}
+	return ArrayStack[T]{inner}
+}
+
 func (a ArrayStack[T]) grow() {
 	var size = len(a.inner.elements)
 	var newSource = make([]T, size+(size<<1))

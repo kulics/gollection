@@ -47,7 +47,7 @@ func MakeHashDict[K comparable, V any](hasher func(data K) int, capacity int) Ha
 	if size < defaultElementsSize {
 		size = defaultElementsSize
 	}
-	var inner = &hashMap[K, V]{
+	var inner = &hashDict[K, V]{
 		buckets:    buckets,
 		entries:    make([]entry[K, V], size),
 		hasher:     hasher,
@@ -90,10 +90,10 @@ func bucketsSizeFor(size int) int {
 }
 
 type HashDict[K comparable, V any] struct {
-	inner *hashMap[K, V]
+	inner *hashDict[K, V]
 }
 
-type hashMap[K comparable, V any] struct {
+type hashDict[K comparable, V any] struct {
 	buckets     []int
 	entries     []entry[K, V]
 	appendCount int
@@ -279,6 +279,23 @@ func (a HashDict[K, V]) ToSlice() []Pair[K, V] {
 		arr = append(arr, t)
 	}, a)
 	return arr
+}
+
+func (a HashDict[K, V]) Clone() HashDict[K, V] {
+	var buckets = make([]int, len(a.inner.buckets))
+	copy(buckets, a.inner.buckets)
+	var entries = make([]entry[K, V], len(a.inner.entries))
+	copy(entries, a.inner.entries)
+	var inner = &hashDict[K, V]{
+		buckets:     buckets,
+		entries:     entries,
+		appendCount: a.inner.appendCount,
+		freeCount:   a.inner.freeCount,
+		freeSize:    a.inner.freeSize,
+		hasher:      a.inner.hasher,
+		loadFactor:  a.inner.loadFactor,
+	}
+	return HashDict[K, V]{inner}
 }
 
 func (a HashDict[K, V]) grow(newSize int) {

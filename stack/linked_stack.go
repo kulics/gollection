@@ -94,6 +94,10 @@ func (a LinkedStack[T]) ToSlice() []T {
 	return arr
 }
 
+func (a LinkedStack[T]) Clone() LinkedStack[T] {
+	return LinkedStackFrom[T](a)
+}
+
 type linkedStackIterator[T any] struct {
 	current *node[T]
 }
