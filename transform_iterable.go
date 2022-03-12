@@ -1,20 +1,20 @@
 package gollection
 
-func WithIndex[T any, I Iterable[T]](it I) IndexStream[T] {
-	return IndexStream[T]{&struct {
+func Indexer[T any, I Iterable[T]](it I) IndexerStream[T] {
+	return IndexerStream[T]{&struct {
 		index    int
 		iterator Iterator[T]
 	}{-1, it.Iter()}}
 }
 
-type IndexStream[T any] struct {
+type IndexerStream[T any] struct {
 	inner *struct {
 		index    int
 		iterator Iterator[T]
 	}
 }
 
-func (a IndexStream[T]) Next() Option[Pair[int, T]] {
+func (a IndexerStream[T]) Next() Option[Pair[int, T]] {
 	if v, ok := a.inner.iterator.Next().Get(); ok {
 		a.inner.index++
 		return Some(PairOf(a.inner.index, v))
@@ -22,7 +22,7 @@ func (a IndexStream[T]) Next() Option[Pair[int, T]] {
 	return None[Pair[int, T]]()
 }
 
-func (a IndexStream[T]) Iter() Iterator[Pair[int, T]] {
+func (a IndexerStream[T]) Iter() Iterator[Pair[int, T]] {
 	return a
 }
 

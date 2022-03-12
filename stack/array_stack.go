@@ -1,24 +1,32 @@
-package gollection
+package stack
+
+import . "github.com/kulics/gollection"
+
+const defaultElementsSize = 10
 
 func ArrayStackOf[T any](elements ...T) ArrayStack[T] {
-	var array = make([]T, len(elements))
-	copy(array, elements)
-	var inner = &arrayStack[T]{array, len(elements)}
+	var size = len(elements)
+	var array []T
+	if size == 0 {
+		array = make([]T, defaultElementsSize)
+	} else {
+		array = make([]T, size)
+		copy(array, elements)
+	}
+	var inner = &arrayStack[T]{array, size}
 	return ArrayStack[T]{inner}
 }
 
 func MakeArrayStack[T any](capacity int) ArrayStack[T] {
+	if capacity < defaultElementsSize {
+		capacity = defaultElementsSize
+	}
 	var inner = &arrayStack[T]{make([]T, capacity), 0}
 	return ArrayStack[T]{inner}
 }
 
 func ArrayStackFrom[T any, I Collection[T]](collection I) ArrayStack[T] {
-	var size = collection.Size()
-	var array = make([]T, size)
-	ForEach(func(item Pair[int, T]) {
-		array[item.First] = item.Second
-	}, WithIndex[T](collection))
-	var inner = &arrayStack[T]{array, size}
+	var inner = &arrayStack[T]{collection.ToSlice(), collection.Size()}
 	return ArrayStack[T]{inner}
 }
 
@@ -80,8 +88,36 @@ func (a ArrayStack[T]) TryPeek() Option[T] {
 	return Some(a.inner.elements[a.inner.size-1])
 }
 
+func (a ArrayStack[T]) Iter() Iterator[T] {
+	return &arrayStackIterator[T]{a.Size(), a}
+}
+
+func (a ArrayStack[T]) ToSlice() []T {
+	var arr = make([]T, a.Size())
+	copy(arr, a.inner.elements)
+	return arr
+}
+
 func (a ArrayStack[T]) grow() {
-	var newSource = make([]T, int(float64(len(a.inner.elements))*1.5))
+	var size = len(a.inner.elements)
+	var newSource = make([]T, size+(size<<1))
 	copy(newSource, a.inner.elements)
 	a.inner.elements = newSource
+}
+
+type arrayStackIterator[T any] struct {
+	index  int
+	source ArrayStack[T]
+}
+
+func (a *arrayStackIterator[T]) Next() Option[T] {
+	if a.index > 0 {
+		a.index--
+		return Some(a.source.inner.elements[a.index])
+	}
+	return None[T]()
+}
+
+func (a *arrayStackIterator[T]) Iter() Iterator[T] {
+	return a
 }

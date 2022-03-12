@@ -1,13 +1,26 @@
-package gollection
+package list
+
+import . "github.com/kulics/gollection"
+
+const defaultElementsSize = 10
 
 func ArrayListOf[T any](elements ...T) ArrayList[T] {
-	var array = make([]T, len(elements))
-	copy(array, elements)
-	var inner = &arrayList[T]{array, len(elements)}
+	var size = len(elements)
+	var array []T
+	if size == 0 {
+		array = make([]T, defaultElementsSize)
+	} else {
+		array = make([]T, size)
+		copy(array, elements)
+	}
+	var inner = &arrayList[T]{array, size}
 	return ArrayList[T]{inner}
 }
 
 func MakeArrayList[T any](capacity int) ArrayList[T] {
+	if capacity < defaultElementsSize {
+		capacity = defaultElementsSize
+	}
 	var inner = &arrayList[T]{make([]T, capacity), 0}
 	return ArrayList[T]{inner}
 }
@@ -208,7 +221,7 @@ type arrayListIterator[T any] struct {
 func (a *arrayListIterator[T]) Next() Option[T] {
 	if a.index < a.source.Size()-1 {
 		a.index++
-		return a.source.TryGet(a.index)
+		return Some(a.source.inner.elements[a.index])
 	}
 	return None[T]()
 }

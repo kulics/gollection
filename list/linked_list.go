@@ -1,4 +1,6 @@
-package gollection
+package list
+
+import . "github.com/kulics/gollection"
 
 func LinkedListOf[T any](elements ...T) LinkedList[T] {
 	var inner = &linkedList[T]{0, nil}
@@ -22,16 +24,16 @@ type LinkedList[T any] struct {
 
 type linkedList[T any] struct {
 	size int
-	head *Node[T]
+	head *node[T]
 }
 
 func (a LinkedList[T]) Prepend(element T) {
-	PrependNode(a.inner.head, element)
+	prependNode(a.inner.head, element)
 	a.inner.size++
 }
 
 func (a LinkedList[T]) Append(element T) {
-	AppendNode(a.inner.head, element)
+	appendNode(a.inner.head, element)
 	a.inner.size++
 }
 
@@ -44,7 +46,7 @@ func (a LinkedList[T]) Insert(index int, element T) bool {
 	} else if index == a.inner.size {
 		a.Append(element)
 	} else {
-		InsertNode(a.inner.head.Next, a.inner.head, index-1, element)
+		insertNode(a.inner.head.Next, a.inner.head, index-1, element)
 	}
 	return true
 }
@@ -60,7 +62,7 @@ func (a LinkedList[T]) Remove(index int) Option[T] {
 		temp.Next = nil
 		item = temp.Value
 	} else {
-		item = RemoveNode(a.inner.head.Next, a.inner.head, index-1)
+		item = removeNode(a.inner.head.Next, a.inner.head, index-1)
 	}
 	a.inner.size--
 	return Some(item)
@@ -84,21 +86,21 @@ func (a LinkedList[T]) GetAndSet(index int, set func(oldElement T) T) Pair[T, T]
 	if a.isOutOfBounds(index) {
 		panic(OutOfBounds)
 	}
-	return GetAndSetNode(a.inner.head, index, set)
+	return getAndSetNode(a.inner.head, index, set)
 }
 
 func (a LinkedList[T]) TryGet(index int) Option[T] {
 	if a.isOutOfBounds(index) {
 		return None[T]()
 	}
-	return Some(GetNode(a.inner.head, index))
+	return Some(getNode(a.inner.head, index))
 }
 
 func (a LinkedList[T]) TrySet(index int, newElement T) Option[T] {
 	if a.isOutOfBounds(index) {
 		return None[T]()
 	}
-	return Some(SetNode(a.inner.head, index, newElement))
+	return Some(setNode(a.inner.head, index, newElement))
 }
 
 func (a LinkedList[T]) isOutOfBounds(index int) bool {
@@ -122,7 +124,7 @@ func (a LinkedList[T]) IsEmpty() bool {
 }
 
 func (a LinkedList[T]) Iter() Iterator[T] {
-	return &LinkedListIterator[T]{a.inner.head}
+	return &linkedListIterator[T]{a.inner.head}
 }
 
 func (a LinkedList[T]) ToSlice() []T {
@@ -133,11 +135,11 @@ func (a LinkedList[T]) ToSlice() []T {
 	return arr
 }
 
-type LinkedListIterator[T any] struct {
-	current *Node[T]
+type linkedListIterator[T any] struct {
+	current *node[T]
 }
 
-func (a *LinkedListIterator[T]) Next() Option[T] {
+func (a *linkedListIterator[T]) Next() Option[T] {
 	if a.current != nil {
 		var item = a.current.Value
 		a.current = a.current.Next
@@ -146,6 +148,6 @@ func (a *LinkedListIterator[T]) Next() Option[T] {
 	return None[T]()
 }
 
-func (a *LinkedListIterator[T]) Iter() Iterator[T] {
+func (a *linkedListIterator[T]) Iter() Iterator[T] {
 	return a
 }

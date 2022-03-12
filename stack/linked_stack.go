@@ -1,4 +1,6 @@
-package gollection
+package stack
+
+import . "github.com/kulics/gollection"
 
 func LinkedStackOf[T any](elements ...T) LinkedStack[T] {
 	var inner = &linkedStack[T]{0, nil}
@@ -22,7 +24,7 @@ type LinkedStack[T any] struct {
 
 type linkedStack[T any] struct {
 	size int
-	head *Node[T]
+	head *node[T]
 }
 
 func (a LinkedStack[T]) Size() int {
@@ -35,9 +37,9 @@ func (a LinkedStack[T]) IsEmpty() bool {
 
 func (a LinkedStack[T]) Push(element T) {
 	if a.inner.head == nil {
-		a.inner.head = &Node[T]{element, nil}
+		a.inner.head = &node[T]{element, nil}
 	} else {
-		a.inner.head = &Node[T]{element, a.inner.head}
+		a.inner.head = &node[T]{element, a.inner.head}
 	}
 	a.inner.size++
 }
@@ -61,8 +63,8 @@ func (a LinkedStack[T]) TryPop() Option[T] {
 		return None[T]()
 	}
 	a.inner.size--
-	var item = a.inner.head.Value
-	a.inner.head = a.inner.head.Next
+	var item = a.inner.head.value
+	a.inner.head = a.inner.head.next
 	return Some(item)
 }
 
@@ -70,5 +72,34 @@ func (a LinkedStack[T]) TryPeek() Option[T] {
 	if a.inner.head == nil {
 		return None[T]()
 	}
-	return Some(a.inner.head.Value)
+	return Some(a.inner.head.value)
+}
+
+func (a LinkedStack[T]) Iter() Iterator[T] {
+	return &linkedStackIterator[T]{a.inner.head}
+}
+
+func (a LinkedStack[T]) ToSlice() []T {
+	var arr = make([]T, a.Size())
+	ForEach(func(t T) {
+		arr = append(arr, t)
+	}, a)
+	return arr
+}
+
+type linkedStackIterator[T any] struct {
+	current *node[T]
+}
+
+func (a *linkedStackIterator[T]) Next() Option[T] {
+	if a.current != nil {
+		var item = a.current.value
+		a.current = a.current.next
+		return Some(item)
+	}
+	return None[T]()
+}
+
+func (a *linkedStackIterator[T]) Iter() Iterator[T] {
+	return a
 }

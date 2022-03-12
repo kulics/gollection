@@ -1,5 +1,17 @@
 package gollection
 
+import . "github.com/kulics/gollection/math"
+
+func Contains[T comparable, I Iterable[T]](target T, it I) bool {
+	var iter = it.Iter()
+	for v, ok := iter.Next().Get(); ok; v, ok = iter.Next().Get() {
+		if v == target {
+			return true
+		}
+	}
+	return false
+}
+
 func Sum[T Number, I Iterable[T]](it I) T {
 	var result T
 	ForEach(func(item T) { result += item }, it)
@@ -14,7 +26,7 @@ func Product[T Number, I Iterable[T]](it I) T {
 		} else {
 			result *= item.Second
 		}
-	}, WithIndex[T](it))
+	}, Indexer[T](it))
 	return result
 }
 
@@ -22,7 +34,7 @@ func Average[T Number, I Iterable[T]](it I) float64 {
 	var result float64
 	ForEach(func(item Pair[int, T]) {
 		result += (float64(item.Second) - result) / float64(item.First+1)
-	}, WithIndex[T](it))
+	}, Indexer[T](it))
 	return result
 }
 
@@ -40,7 +52,7 @@ func Max[T Number, I Iterable[T]](it I) T {
 		} else if result < item.Second {
 			result = item.Second
 		}
-	}, WithIndex[T](it))
+	}, Indexer[T](it))
 	return result
 }
 
@@ -52,7 +64,7 @@ func Min[T Number, I Iterable[T]](it I) T {
 		} else if result > item.Second {
 			result = item.Second
 		}
-	}, WithIndex[T](it))
+	}, Indexer[T](it))
 	return result
 }
 
@@ -106,7 +118,7 @@ func Last[T any, I Iterable[T]](it I) Option[T] {
 	return result
 }
 
-func At[T any](index int, it Iterable[T]) Option[T] {
+func At[T any, I Iterable[T]](index int, it I) Option[T] {
 	var iter = it.Iter()
 	var result = iter.Next()
 	var i = 0
