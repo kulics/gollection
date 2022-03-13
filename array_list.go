@@ -1,10 +1,4 @@
-package list
-
-import (
-	. "github.com/kulics/gollection"
-	. "github.com/kulics/gollection/tuple"
-	. "github.com/kulics/gollection/union"
-)
+package gollection
 
 const defaultElementsSize = 10
 

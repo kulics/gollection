@@ -1,10 +1,4 @@
-package list
-
-import (
-	. "github.com/kulics/gollection"
-	. "github.com/kulics/gollection/tuple"
-	. "github.com/kulics/gollection/union"
-)
+package gollection
 
 func LinkedListOf[T any](elements ...T) LinkedList[T] {
 	var inner = &linkedList[T]{0, nil, nil}
@@ -27,14 +21,14 @@ type LinkedList[T any] struct {
 
 type linkedList[T any] struct {
 	size  int
-	first *node[T]
-	last  *node[T]
+	first *twoWayNode[T]
+	last  *twoWayNode[T]
 }
 
-type node[T any] struct {
+type twoWayNode[T any] struct {
 	value T
-	next  *node[T]
-	prev  *node[T]
+	next  *twoWayNode[T]
+	prev  *twoWayNode[T]
 }
 
 func (a LinkedList[T]) GetFirst() T {
@@ -116,7 +110,7 @@ func (a LinkedList[T]) InsertAll(index int, elements Collection[T]) {
 	if size == 0 {
 		return
 	}
-	var pred, succ *node[T]
+	var pred, succ *twoWayNode[T]
 	if index == a.inner.size {
 		succ = nil
 		pred = a.inner.last
@@ -126,7 +120,7 @@ func (a LinkedList[T]) InsertAll(index int, elements Collection[T]) {
 	}
 	var iter = elements.Iter()
 	for v, ok := iter.Next().Get(); ok; v, ok = iter.Next().Get() {
-		var newNode = &node[T]{value: v, prev: pred, next: nil}
+		var newNode = &twoWayNode[T]{value: v, prev: pred, next: nil}
 		if pred == nil {
 			a.inner.first = newNode
 		} else {
@@ -236,7 +230,7 @@ func (a LinkedList[T]) isOutOfBounds(index int) bool {
 	return false
 }
 
-func (a LinkedList[T]) at(index int) *node[T] {
+func (a LinkedList[T]) at(index int) *twoWayNode[T] {
 	if index < (a.inner.size >> 1) {
 		var x = a.inner.first
 		for i := 0; i < index; i++ {
@@ -254,7 +248,7 @@ func (a LinkedList[T]) at(index int) *node[T] {
 
 func (a LinkedList[T]) linkFirst(element T) {
 	var first = a.inner.first
-	var newNode = &node[T]{value: element, prev: nil, next: first}
+	var newNode = &twoWayNode[T]{value: element, prev: nil, next: first}
 	a.inner.first = newNode
 	if first == nil {
 		a.inner.last = newNode
@@ -266,7 +260,7 @@ func (a LinkedList[T]) linkFirst(element T) {
 
 func (a LinkedList[T]) linkLast(element T) {
 	var last = a.inner.last
-	var newNode = &node[T]{value: element, next: nil, prev: last}
+	var newNode = &twoWayNode[T]{value: element, next: nil, prev: last}
 	a.inner.last = newNode
 	if last == nil {
 		a.inner.first = newNode
@@ -276,9 +270,9 @@ func (a LinkedList[T]) linkLast(element T) {
 	a.inner.size++
 }
 
-func (a LinkedList[T]) linkBefore(element T, succ *node[T]) {
+func (a LinkedList[T]) linkBefore(element T, succ *twoWayNode[T]) {
 	var pred = succ.prev
-	var newNode = &node[T]{value: element, prev: pred, next: succ}
+	var newNode = &twoWayNode[T]{value: element, prev: pred, next: succ}
 	succ.prev = newNode
 	if pred == nil {
 		a.inner.first = newNode
@@ -288,7 +282,7 @@ func (a LinkedList[T]) linkBefore(element T, succ *node[T]) {
 	a.inner.size++
 }
 
-func (a LinkedList[T]) unlink(x *node[T]) T {
+func (a LinkedList[T]) unlink(x *twoWayNode[T]) T {
 	var element = x.value
 	var next = x.next
 	var prev = x.prev
@@ -311,7 +305,7 @@ func (a LinkedList[T]) unlink(x *node[T]) T {
 	return element
 }
 
-func (a LinkedList[T]) unlinkFirst(x *node[T]) T {
+func (a LinkedList[T]) unlinkFirst(x *twoWayNode[T]) T {
 	var element = x.value
 	var next = x.next
 	var empty T
@@ -327,7 +321,7 @@ func (a LinkedList[T]) unlinkFirst(x *node[T]) T {
 	return element
 }
 
-func (a LinkedList[T]) unlinkLast(x *node[T]) T {
+func (a LinkedList[T]) unlinkLast(x *twoWayNode[T]) T {
 	var element = x.value
 	var prev = x.prev
 	var empty T
@@ -344,7 +338,7 @@ func (a LinkedList[T]) unlinkLast(x *node[T]) T {
 }
 
 type linkedListIterator[T any] struct {
-	current *node[T]
+	current *twoWayNode[T]
 }
 
 func (a *linkedListIterator[T]) Next() Option[T] {

@@ -130,8 +130,6 @@ type Collection[T any] interface {
 
 We provide the List interface to unify the description of ordered sequences, and provide `ArrayList` and `LinkedList` as its implementation types.
 
-You can find information about them in the package list.
-
 ```go
 type List[T any] interface {
 	Collection[T]
@@ -153,14 +151,12 @@ type List[T any] interface {
 }
 ```
 
-### Dict
+### Map
 
-We provide the Dict interface to unify the description of the mapping type, and provide `HashDict` as its implementation type.
-
-You can find information about them in the package dict.
+We provide the Map interface to unify the description of the mapping type, and provide `HashMap` as its implementation type.
 
 ```go
-type Dict[K any, V any] interface {
+type Map[K any, V any] interface {
 	Collection[Pair[K, V]]
 
 	Get(key K) V
@@ -177,9 +173,7 @@ type Dict[K any, V any] interface {
 
 ### Set
 
-We provide the Set interface to describe the element-unique collection type, and we provide HashSet as its implementation type.
-
-You can find information about them in the package set.
+We provide the Set interface to describe the element-unique collection type, and we provide `HashSet` as its implementation type.
 
 ```go
 type Set[T any] interface {
@@ -197,9 +191,7 @@ type Set[T any] interface {
 
 ### Stack
 
-We provide the Stack interface to describe the stack data structure and provide ArrayStack and LinkedStack as its implementation types.
-
-You can find information about them in the package stack.
+We provide the Stack interface to describe the stack data structure and provide `ArrayStack` and `LinkedStack` as its implementation types.
 
 ```go
 type Stack[T any] interface {
@@ -213,11 +205,9 @@ type Stack[T any] interface {
 }
 ```
 
-### tuple
+### Tuple
 
 We have also introduced several convenient tuple types for use, and indeed gollection uses them as well. Including `Void`, `Pair`, `Triple`.
-
-You can find information about them in the package tuple.
 
 ```go
 type Void struct{}
@@ -229,11 +219,9 @@ func TripleOf[T1 any, T2 any, T3 any](f T1, s T2, t T3) Triple[T1, T2, T3]
 func (a Triple[T1, T2, T3]) Get() (T1, T2, T3)
 ```
 
-### union
+### Union
 
 We have also introduced several convenient union types for use, which are actually used by gollection. Including `Option` and `Result`.
-
-You can find information about them in the package union.
 
 ```go
 func Some[T any](a T) Option[T]

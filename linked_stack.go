@@ -1,9 +1,4 @@
-package stack
-
-import (
-	. "github.com/kulics/gollection"
-	. "github.com/kulics/gollection/union"
-)
+package gollection
 
 func LinkedStackOf[T any](elements ...T) LinkedStack[T] {
 	var inner = &linkedStack[T]{0, nil}
@@ -26,12 +21,12 @@ type LinkedStack[T any] struct {
 
 type linkedStack[T any] struct {
 	size  int
-	first *node[T]
+	first *oneWayNode[T]
 }
 
-type node[T any] struct {
+type oneWayNode[T any] struct {
 	value T
-	next  *node[T]
+	next  *oneWayNode[T]
 }
 
 func (a LinkedStack[T]) Size() int {
@@ -44,9 +39,9 @@ func (a LinkedStack[T]) IsEmpty() bool {
 
 func (a LinkedStack[T]) Push(element T) {
 	if a.inner.first == nil {
-		a.inner.first = &node[T]{element, nil}
+		a.inner.first = &oneWayNode[T]{element, nil}
 	} else {
-		a.inner.first = &node[T]{element, a.inner.first}
+		a.inner.first = &oneWayNode[T]{element, a.inner.first}
 	}
 	a.inner.size++
 }
@@ -99,7 +94,7 @@ func (a LinkedStack[T]) Clone() LinkedStack[T] {
 }
 
 type linkedStackIterator[T any] struct {
-	current *node[T]
+	current *oneWayNode[T]
 }
 
 func (a *linkedStackIterator[T]) Next() Option[T] {

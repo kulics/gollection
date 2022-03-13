@@ -1,4 +1,4 @@
-package union
+package gollection
 
 func Some[T any](a T) Option[T] {
 	return Option[T]{a, true}

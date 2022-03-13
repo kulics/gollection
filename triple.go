@@ -1,4 +1,4 @@
-package tuple
+package gollection
 
 func TripleOf[T1 any, T2 any, T3 any](f T1, s T2, t T3) Triple[T1, T2, T3] {
 	return Triple[T1, T2, T3]{f, s, t}

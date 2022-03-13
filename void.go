@@ -1,3 +1,3 @@
-package tuple
+package gollection
 
 type Void struct{}

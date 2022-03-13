@@ -1,7 +1,5 @@
 package gollection
 
-import . "github.com/kulics/gollection/union"
-
 func ToSlice[T any](a []T) Slice[T] {
 	return Slice[T](a)
 }

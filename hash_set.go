@@ -1,12 +1,4 @@
-package set
-
-import (
-	. "github.com/kulics/gollection"
-	. "github.com/kulics/gollection/dict"
-	. "github.com/kulics/gollection/math"
-	. "github.com/kulics/gollection/tuple"
-	. "github.com/kulics/gollection/union"
-)
+package gollection
 
 func HashSetOf[T comparable](hasher func(data T) int, elements ...T) HashSet[T] {
 	var size = len(elements)
@@ -26,7 +18,7 @@ func StringSetOf[T ~string](elements ...T) HashSet[T] {
 }
 
 func MakeHashSet[T comparable](hasher func(data T) int, capacity int) HashSet[T] {
-	return HashSet[T]{MakeHashDict[T, Void](hasher, capacity)}
+	return HashSet[T]{MakeHashMap[T, Void](hasher, capacity)}
 }
 
 func MakeNumberSet[T Number](capacity int) HashSet[T] {
@@ -55,7 +47,7 @@ func StringSetFrom[T ~string, I Collection[T]](collection I) HashSet[T] {
 }
 
 type HashSet[T comparable] struct {
-	inner HashDict[T, Void]
+	inner HashMap[T, Void]
 }
 
 func (a HashSet[T]) Size() int {

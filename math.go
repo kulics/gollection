@@ -1,13 +1,4 @@
-package math
-
-type Integer interface {
-	~int | ~int64 | ~int32 | ~int16 | ~int8 |
-		~uint64 | ~uint32 | ~uint16 | ~uint8
-}
-
-type Number interface {
-	Integer | ~float64 | ~float32
-}
+package gollection
 
 func Inc[T Number](a T) T {
 	return a + 1

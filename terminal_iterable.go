@@ -1,11 +1,5 @@
 package gollection
 
-import (
-	. "github.com/kulics/gollection/math"
-	. "github.com/kulics/gollection/tuple"
-	. "github.com/kulics/gollection/union"
-)
-
 func Contains[T comparable, I Iterable[T]](target T, it I) bool {
 	var iter = it.Iter()
 	for v, ok := iter.Next().Get(); ok; v, ok = iter.Next().Get() {

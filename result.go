@@ -1,4 +1,4 @@
-package union
+package gollection
 
 func Ok[T any](a T) Result[T] {
 	return Result[T]{a, nil}

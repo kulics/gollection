@@ -1,11 +1,4 @@
-package stack
-
-import (
-	. "github.com/kulics/gollection"
-	. "github.com/kulics/gollection/union"
-)
-
-const defaultElementsSize = 10
+package gollection
 
 func ArrayStackOf[T any](elements ...T) ArrayStack[T] {
 	var size = len(elements)

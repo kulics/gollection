@@ -1,10 +1,5 @@
 package gollection
 
-import (
-	. "github.com/kulics/gollection/tuple"
-	. "github.com/kulics/gollection/union"
-)
-
 func Indexer[T any, I Iterable[T]](it I) Iterator[Pair[int, T]] {
 	return &indexerStream[T]{-1, it.Iter()}
 }
