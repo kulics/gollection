@@ -33,8 +33,8 @@ type arrayList[T any] struct {
 }
 
 func (a ArrayList[T]) Prepend(element T) {
-	if len(a.inner.elements) < a.inner.size+1 {
-		a.grow(1)
+	if growSize := a.inner.size + 1; len(a.inner.elements) < growSize {
+		a.grow(growSize)
 	}
 	copy(a.inner.elements[1:], a.inner.elements[0:])
 	a.inner.elements[0] = element
@@ -42,8 +42,8 @@ func (a ArrayList[T]) Prepend(element T) {
 
 func (a ArrayList[T]) PrependAll(elements Collection[T]) {
 	var additional = elements.Size()
-	if len(a.inner.elements) < a.inner.size+additional {
-		a.grow(additional)
+	if growSize := a.inner.size + additional; len(a.inner.elements) < growSize {
+		a.grow(growSize)
 	}
 	copy(a.inner.elements[additional:], a.inner.elements[0:])
 	var i = 0
@@ -55,8 +55,8 @@ func (a ArrayList[T]) PrependAll(elements Collection[T]) {
 }
 
 func (a ArrayList[T]) Append(element T) {
-	if len(a.inner.elements) < a.inner.size+1 {
-		a.grow(1)
+	if growSize := a.inner.size + 1; len(a.inner.elements) < growSize {
+		a.grow(growSize)
 	}
 	a.inner.elements[a.inner.size] = element
 	a.inner.size++
@@ -64,8 +64,8 @@ func (a ArrayList[T]) Append(element T) {
 
 func (a ArrayList[T]) AppendAll(elements Collection[T]) {
 	var additional = elements.Size()
-	if len(a.inner.elements) < a.inner.size+additional {
-		a.grow(additional)
+	if growSize := a.inner.size + additional; len(a.inner.elements) < growSize {
+		a.grow(growSize)
 	}
 	var i = a.inner.size
 	ForEach(func(item T) {
@@ -79,8 +79,8 @@ func (a ArrayList[T]) Insert(index int, element T) {
 	if index < 0 || index > a.inner.size {
 		panic(OutOfBounds)
 	}
-	if len(a.inner.elements) < a.inner.size+1 {
-		a.grow(1)
+	if growSize := a.inner.size + 1; len(a.inner.elements) < growSize {
+		a.grow(growSize)
 	}
 	copy(a.inner.elements[index+1:], a.inner.elements[index:])
 	a.inner.elements[index] = element
@@ -91,8 +91,8 @@ func (a ArrayList[T]) InsertAll(index int, elements Collection[T]) {
 		panic(OutOfBounds)
 	}
 	var additional = elements.Size()
-	if len(a.inner.elements) < a.inner.size+additional {
-		a.grow(additional)
+	if growSize := a.inner.size + additional; len(a.inner.elements) < growSize {
+		a.grow(growSize)
 	}
 	copy(a.inner.elements[index+additional:], a.inner.elements[index:])
 	var i = index
@@ -116,9 +116,8 @@ func (a ArrayList[T]) Remove(index int) T {
 }
 
 func (a ArrayList[T]) Reserve(additional int) {
-	var addable = len(a.inner.elements) - a.inner.size
-	if addable < additional {
-		a.grow(additional - addable)
+	if addable := len(a.inner.elements) - a.inner.size; addable < additional {
+		a.grow(a.inner.size + additional)
 	}
 }
 
@@ -205,13 +204,21 @@ func (a ArrayList[T]) isOutOfBounds(index int) bool {
 }
 
 func (a ArrayList[T]) grow(minCapacity int) {
-	var newSize = int(float64(len(a.inner.elements)) * 1.5)
+	var newSize = arrayGrow(a.inner.size)
 	if newSize < minCapacity {
 		newSize = minCapacity
 	}
 	var newSource = make([]T, newSize)
 	copy(newSource, a.inner.elements)
 	a.inner.elements = newSource
+}
+
+func arrayGrow(size int) int {
+	var newSize = size + (size >> 1)
+	if newSize < defaultElementsSize {
+		newSize = defaultElementsSize
+	}
+	return newSize
 }
 
 type arrayListIterator[T any] struct {

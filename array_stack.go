@@ -39,8 +39,8 @@ func (a ArrayStack[T]) IsEmpty() bool {
 }
 
 func (a ArrayStack[T]) Push(element T) {
-	if len(a.inner.elements) < a.inner.size+1 {
-		a.grow()
+	if growSize := a.inner.size + 1; len(a.inner.elements) < growSize {
+		a.grow(growSize)
 	}
 	a.inner.elements[a.inner.size] = element
 	a.inner.size++
@@ -99,9 +99,18 @@ func (a ArrayStack[T]) Clone() ArrayStack[T] {
 	return ArrayStack[T]{inner}
 }
 
-func (a ArrayStack[T]) grow() {
-	var size = len(a.inner.elements)
-	var newSource = make([]T, size+(size<<1))
+func (a ArrayStack[T]) Reserve(additional int) {
+	if addable := len(a.inner.elements) - a.inner.size; addable < additional {
+		a.grow(a.inner.size + additional)
+	}
+}
+
+func (a ArrayStack[T]) grow(minCapacity int) {
+	var newSize = arrayGrow(len(a.inner.elements))
+	if newSize < minCapacity {
+		newSize = minCapacity
+	}
+	var newSource = make([]T, newSize)
 	copy(newSource, a.inner.elements)
 	a.inner.elements = newSource
 }
