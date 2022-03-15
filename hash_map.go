@@ -134,7 +134,9 @@ func (a HashMap[K, V]) Put(key K, value V) Option[V] {
 		a.inner.freeCount = a.inner.entries[a.inner.freeCount].next
 		a.inner.freeSize--
 	} else {
-		a.grow(a.Size() + 1)
+		if a.grow(a.Size() + 1) {
+			index = a.index(hash)
+		}
 		bucket = a.inner.appendCount
 		a.inner.appendCount++
 	}
@@ -152,7 +154,9 @@ func (a HashMap[K, V]) Put(key K, value V) Option[V] {
 
 func (a HashMap[K, V]) PutAll(elements Collection[Pair[K, V]]) {
 	var iter = elements.Iter()
-	a.grow(a.Size() + elements.Size())
+	if size, addSize := a.Size(), elements.Size(); size < addSize {
+		a.grow(addSize)
+	}
 	for item, ok := iter.Next().Get(); ok; item, ok = iter.Next().Get() {
 		var k, v = item.Get()
 		a.Put(k, v)
@@ -183,7 +187,9 @@ func (a HashMap[K, V]) GetAndPut(key K, set func(oldValue Option[V]) V) Pair[V, 
 		a.inner.freeCount = a.inner.entries[a.inner.freeCount].next
 		a.inner.freeSize--
 	} else {
-		a.grow(a.Size() + 1)
+		if a.grow(a.Size() + 1) {
+			index = a.index(hash)
+		}
 		bucket = a.inner.appendCount
 		a.inner.appendCount++
 	}
@@ -292,9 +298,10 @@ func (a HashMap[K, V]) Clone() HashMap[K, V] {
 	return HashMap[K, V]{inner}
 }
 
-func (a HashMap[K, V]) grow(minCapacity int) {
+func (a HashMap[K, V]) grow(minCapacity int) bool {
 	var entriesSize = len(a.inner.entries)
 	var bucketsSize = len(a.inner.buckets)
+	var isRehash = false
 	if float64(minCapacity/bucketsSize) > a.inner.loadFactor {
 		var newBucketsSize = bucketsSize * 2
 		var newBuckets = make([]int, newBucketsSize)
@@ -310,6 +317,7 @@ func (a HashMap[K, V]) grow(minCapacity int) {
 			}
 		}
 		a.inner.buckets = newBuckets
+		isRehash = true
 	}
 	if minCapacity > entriesSize {
 		var newSize = entriesSize + (entriesSize >> 1)
@@ -320,6 +328,7 @@ func (a HashMap[K, V]) grow(minCapacity int) {
 		copy(newEntries, a.inner.entries)
 		a.inner.entries = newEntries
 	}
+	return isRehash
 }
 
 func (a HashMap[K, V]) index(hash int) int {
