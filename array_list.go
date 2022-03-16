@@ -196,6 +196,10 @@ func (a ArrayList[T]) Clone() ArrayList[T] {
 	return ArrayList[T]{inner}
 }
 
+func (a ArrayList[T]) Capacity() int {
+	return len(a.inner.elements)
+}
+
 func (a ArrayList[T]) isOutOfBounds(index int) bool {
 	if index < 0 || index >= a.inner.size {
 		return true

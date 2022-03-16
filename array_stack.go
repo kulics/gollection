@@ -105,6 +105,10 @@ func (a ArrayStack[T]) Reserve(additional int) {
 	}
 }
 
+func (a ArrayStack[T]) Capacity() int {
+	return len(a.inner.elements)
+}
+
 func (a ArrayStack[T]) grow(minCapacity int) {
 	var newSize = arrayGrow(len(a.inner.elements))
 	if newSize < minCapacity {
