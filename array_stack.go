@@ -109,6 +109,14 @@ func (a ArrayStack[T]) Capacity() int {
 	return len(a.inner.elements)
 }
 
+func (a ArrayStack[T]) Clear() {
+	var emptyValue T
+	for i := 0; i < a.inner.size; i++ {
+		a.inner.elements[i] = emptyValue
+	}
+	a.inner.size = 0
+}
+
 func (a ArrayStack[T]) grow(minCapacity int) {
 	var newSize = arrayGrow(len(a.inner.elements))
 	if newSize < minCapacity {
