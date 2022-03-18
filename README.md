@@ -12,8 +12,6 @@ type Iterable[T any] interface {
 }
 
 type Iterator[T any] interface {
-	Iterable[T]
-
 	Next() Option[T]
 }
 ```
@@ -23,8 +21,6 @@ gollection applies the iterator pattern design, the core interface consists of I
 Iterator is responsible for providing iterative functionality, Iterator is unidirectional and lazy, each call to next will only return one result.
 
 Iterable is responsible for providing Iterator, the implementation type determines whether the provided Iterator is reusable.
-
-Iterator itself is also iterable, so Iterator must also implement Iterable.
 
 The inert traversal feature allows the combination of higher-order functions without significant overhead and can provide a richer combination of functions.
 
@@ -46,7 +42,7 @@ gollection provides a rich set of stream manipulation functions that can be used
 Here is an example of a simple combination used:
 
 ```go
-func foo(it Iterable[int]) {
+func foo() {
 	show := func(i int) {
 		println(i)
 	}
@@ -56,7 +52,7 @@ func foo(it Iterable[int]) {
 	square := func(i int) int {
 		return i * i
 	}
-	ForEach(show, Mapper(square, Filter(even, ToSlice([]int{1, 2, 3, 4, 5, 6, 7}))))
+	ForEach(show, Mapper(square, Filter(even, ToSliceIter([]int{1, 2, 3, 4, 5, 6, 7}))))
     // Result:
     // 4
     // 16
@@ -69,13 +65,13 @@ func foo(it Iterable[int]) {
 A series of conversion functions are provided to process one Iterable conversion to another Iterable. these conversions are not executed immediately and only act one at a time when iterating.
 
 ```go
-func Indexer[T any, I Iterable[T]](it I) Iterator[Pair[int, T]]
-func Mapper[T any, R any, I Iterable[T]](transform func(T) R, it I) Iterator[R]
-func Filter[T any, I Iterable[T]](predecate func(T) bool, it I) Iterator[T]
-func Limit[T any, I Iterable[T]](count int, it I) Iterator[T]
-func Skip[T any, I Iterable[T]](count int, it I) Iterator[T]
-func Step[T any, I Iterable[T]](count int, it I) Iterator[T]
-func Concat[T any, I Iterable[T]](left I, right I) Iterator[T]
+func Indexer[T any](it Iterator[T]) Iterator[Pair[int, T]]
+func Mapper[T any, R any](transform func(T) R, it Iterator[T]) Iterator[R]
+func Filter[T any](predecate func(T) bool, it Iterator[T]) Iterator[T]
+func Limit[T any](count int, it Iterator[T]) Iterator[T]
+func Skip[T any](count int, it Iterator[T]) Iterator[T]
+func Step[T any](count int, it Iterator[T]) Iterator[T]
+func Concat[T any](left Iterator[T], right Iterator[T]) Iterator[T]
 ```
 
 ### Terminal Iterable
@@ -83,22 +79,22 @@ func Concat[T any, I Iterable[T]](left I, right I) Iterator[T]
 A set of functions that evaluate the Iterable and are executed immediately.
 
 ```go
-func Contains[T comparable, I Iterable[T]](target T, it I) bool
-func Sum[T Number, I Iterable[T]](it I) T
-func Product[T Number, I Iterable[T]](it I) T
-func Average[T Number, I Iterable[T]](it I) float64
-func Count[T any, I Iterable[T]](it I) int
-func Max[T Number, I Iterable[T]](it I) T
-func Min[T Number, I Iterable[T]](it I) T
-func ForEach[T any, I Iterable[T]](action func(T), it I)
-func AllMatch[T any, I Iterable[T]](predicate func(T) bool, it I) bool
-func NoneMatch[T any, I Iterable[T]](predicate func(T) bool, it I) bool
-func AnyMatch[T any, I Iterable[T]](predicate func(T) bool, it I) bool
-func First[T any, I Iterable[T]](it I) Option[T]
-func Last[T any, I Iterable[T]](it I) Option[T]
-func At[T any, I Iterable[T]](index int, it I) Option[T]
-func Reduce[T any, R any, I Iterable[T]](initial R, operation func(R, T) R, it I) R
-func Fold[T any, R any, I Iterable[T]](initial R, operation func(T, R) R, it I) R
+func Contains[T comparable](target T, it Iterator[T]) bool
+func Sum[T Number](it Iterator[T]) T
+func Product[T Number](it Iterator[T]) T
+func Average[T Number](it Iterator[T]) float64
+func Count[T any](it Iterator[T]) int
+func Max[T Number](it Iterator[T]) T
+func Min[T Number](it Iterator[T]) T
+func ForEach[T any](action func(T), it Iterator[T])
+func AllMatch[T any](predicate func(T) bool, it Iterator[T]) bool
+func NoneMatch[T any](predicate func(T) bool, it Iterator[T]) bool
+func AnyMatch[T any](predicate func(T) bool, it Iterator[T]) bool
+func First[T any](it Iterator[T]) Option[T]
+func Last[T any](it Iterator[T]) Option[T]
+func At[T any](index int, it Iterator[T]) Option[T]
+func Reduce[T any, R any](initial R, operation func(R, T) R, it Iterator[T]) R
+func Fold[T any, R any](initial R, operation func(T, R) R, it Iterator[T]) R
 ```
 
 ## ToString and ToSlice
@@ -108,8 +104,15 @@ In order to make go's native string and slice also iterable, we have introduced 
 ```go
 var str = "Hello, world!"
 var sli = []int{1, 2, 3}
-Count[rune](ToString(str)) // 13
-Count[int](ToSlice(sli)) // 3
+Count(ToString(str).Iter()) // 13
+Count(ToSlice(sli).Iter()) // 3
+```
+
+We also provide the version that gets the iterator directly.
+
+```go
+Count(ToStringIter(str)) // 13
+Count(ToSliceIter(sli)) // 3
 ```
 
 ## Collection

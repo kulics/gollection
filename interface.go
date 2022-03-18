@@ -14,8 +14,6 @@ type Iterable[T any] interface {
 }
 
 type Iterator[T any] interface {
-	Iterable[T]
-
 	Next() Option[T]
 }
 

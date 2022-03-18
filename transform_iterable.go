@@ -1,7 +1,7 @@
 package gollection
 
-func Indexer[T any, I Iterable[T]](it I) Iterator[Pair[int, T]] {
-	return &indexerStream[T]{-1, it.Iter()}
+func Indexer[T any](it Iterator[T]) Iterator[Pair[int, T]] {
+	return &indexerStream[T]{-1, it}
 }
 
 type indexerStream[T any] struct {
@@ -17,12 +17,8 @@ func (a *indexerStream[T]) Next() Option[Pair[int, T]] {
 	return None[Pair[int, T]]()
 }
 
-func (a *indexerStream[T]) Iter() Iterator[Pair[int, T]] {
-	return a
-}
-
-func Mapper[T any, R any, I Iterable[T]](transform func(T) R, it I) Iterator[R] {
-	return &mapperStream[T, R]{transform, it.Iter()}
+func Mapper[T any, R any](transform func(T) R, it Iterator[T]) Iterator[R] {
+	return &mapperStream[T, R]{transform, it}
 }
 
 type mapperStream[T any, R any] struct {
@@ -37,12 +33,8 @@ func (a *mapperStream[T, R]) Next() Option[R] {
 	return None[R]()
 }
 
-func (a *mapperStream[T, R]) Iter() Iterator[R] {
-	return a
-}
-
-func Filter[T any, I Iterable[T]](predecate func(T) bool, it I) Iterator[T] {
-	return &filterStream[T]{predecate, it.Iter()}
+func Filter[T any](predecate func(T) bool, it Iterator[T]) Iterator[T] {
+	return &filterStream[T]{predecate, it}
 }
 
 type filterStream[T any] struct {
@@ -59,12 +51,8 @@ func (a *filterStream[T]) Next() Option[T] {
 	return None[T]()
 }
 
-func (a *filterStream[T]) Iter() Iterator[T] {
-	return a
-}
-
-func Limit[T any, I Iterable[T]](count int, it I) Iterator[T] {
-	return &limitStream[T]{count, 0, it.Iter()}
+func Limit[T any](count int, it Iterator[T]) Iterator[T] {
+	return &limitStream[T]{count, 0, it}
 }
 
 type limitStream[T any] struct {
@@ -81,12 +69,8 @@ func (a *limitStream[T]) Next() Option[T] {
 	return None[T]()
 }
 
-func (a *limitStream[T]) Iter() Iterator[T] {
-	return a
-}
-
-func Skip[T any, I Iterable[T]](count int, it I) Iterator[T] {
-	return &skipStream[T]{count, 0, it.Iter()}
+func Skip[T any](count int, it Iterator[T]) Iterator[T] {
+	return &skipStream[T]{count, 0, it}
 }
 
 type skipStream[T any] struct {
@@ -106,12 +90,8 @@ func (a *skipStream[T]) Next() Option[T] {
 	return None[T]()
 }
 
-func (a *skipStream[T]) Iter() Iterator[T] {
-	return a
-}
-
-func Step[T any, I Iterable[T]](count int, it I) Iterator[T] {
-	return &stepStream[T]{count, count, it.Iter()}
+func Step[T any](count int, it Iterator[T]) Iterator[T] {
+	return &stepStream[T]{count, count, it}
 }
 
 type stepStream[T any] struct {
@@ -132,12 +112,8 @@ func (a *stepStream[T]) Next() Option[T] {
 	return None[T]()
 }
 
-func (a *stepStream[T]) Iter() Iterator[T] {
-	return a
-}
-
-func Concat[T any, I Iterable[T]](left I, right I) Iterator[T] {
-	return &concatStream[T]{false, left.Iter(), right.Iter()}
+func Concat[T any](left Iterator[T], right Iterator[T]) Iterator[T] {
+	return &concatStream[T]{false, left, right}
 }
 
 type concatStream[T any] struct {
@@ -155,8 +131,4 @@ func (a *concatStream[T]) Next() Option[T] {
 		return a.Next()
 	}
 	return a.last.Next()
-}
-
-func (a *concatStream[T]) Iter() Iterator[T] {
-	return a
 }

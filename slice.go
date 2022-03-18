@@ -4,6 +4,10 @@ func ToSlice[T any](a []T) Slice[T] {
 	return Slice[T](a)
 }
 
+func ToSliceIter[T any](a []T) Iterator[T] {
+	return &sliceIterator[T]{-1, a}
+}
+
 type Slice[T any] []T
 
 func (a Slice[T]) Iter() Iterator[T] {
@@ -35,8 +39,4 @@ func (a *sliceIterator[T]) Next() Option[T] {
 		return Some(a.source[a.index])
 	}
 	return None[T]()
-}
-
-func (a *sliceIterator[T]) Iter() Iterator[T] {
-	return a
 }

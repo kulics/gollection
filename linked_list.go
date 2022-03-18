@@ -215,7 +215,7 @@ func (a LinkedList[T]) ToSlice() []T {
 	var arr = make([]T, a.Size())
 	ForEach(func(t T) {
 		arr = append(arr, t)
-	}, a)
+	}, a.Iter())
 	return arr
 }
 
@@ -348,8 +348,4 @@ func (a *linkedListIterator[T]) Next() Option[T] {
 		return Some(item)
 	}
 	return None[T]()
-}
-
-func (a *linkedListIterator[T]) Iter() Iterator[T] {
-	return a
 }

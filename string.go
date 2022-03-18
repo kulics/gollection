@@ -4,6 +4,10 @@ func ToString(a string) String {
 	return String(a)
 }
 
+func ToStringIter(a string) Iterator[rune] {
+	return &stringIterator{-1, []rune(a)}
+}
+
 type String string
 
 func (a String) Iter() Iterator[rune] {

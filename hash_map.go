@@ -62,7 +62,7 @@ func HashMapFrom[K comparable, V any, I Collection[Pair[K, V]]](hasher func(data
 	var dict = MakeHashMap[K, V](hasher, size)
 	ForEach(func(t Pair[K, V]) {
 		dict.Put(t.First, t.Second)
-	}, collection)
+	}, collection.Iter())
 	return dict
 }
 
@@ -277,7 +277,7 @@ func (a HashMap[K, V]) ToSlice() []Pair[K, V] {
 	var arr = make([]Pair[K, V], a.Size())
 	ForEach(func(t Pair[K, V]) {
 		arr = append(arr, t)
-	}, a)
+	}, a.Iter())
 	return arr
 }
 
@@ -349,8 +349,4 @@ func (a *hashMapIterator[K, V]) Next() Option[Pair[K, V]] {
 		}
 	}
 	return None[Pair[K, V]]()
-}
-
-func (a *hashMapIterator[K, V]) Iter() Iterator[Pair[K, V]] {
-	return a
 }

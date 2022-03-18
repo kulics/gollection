@@ -1,8 +1,7 @@
 package gollection
 
-func Contains[T comparable, I Iterable[T]](target T, it I) bool {
-	var iter = it.Iter()
-	for v, ok := iter.Next().Get(); ok; v, ok = iter.Next().Get() {
+func Contains[T comparable](target T, it Iterator[T]) bool {
+	for v, ok := it.Next().Get(); ok; v, ok = it.Next().Get() {
 		if v == target {
 			return true
 		}
@@ -10,13 +9,13 @@ func Contains[T comparable, I Iterable[T]](target T, it I) bool {
 	return false
 }
 
-func Sum[T Number, I Iterable[T]](it I) T {
+func Sum[T Number](it Iterator[T]) T {
 	var result T
 	ForEach(func(item T) { result += item }, it)
 	return result
 }
 
-func Product[T Number, I Iterable[T]](it I) T {
+func Product[T Number](it Iterator[T]) T {
 	var result T
 	ForEach(func(item Pair[int, T]) {
 		if item.First == 0 {
@@ -28,7 +27,7 @@ func Product[T Number, I Iterable[T]](it I) T {
 	return result
 }
 
-func Average[T Number, I Iterable[T]](it I) float64 {
+func Average[T Number](it Iterator[T]) float64 {
 	var result float64
 	ForEach(func(item Pair[int, T]) {
 		result += (float64(item.Second) - result) / float64(item.First+1)
@@ -36,13 +35,13 @@ func Average[T Number, I Iterable[T]](it I) float64 {
 	return result
 }
 
-func Count[T any, I Iterable[T]](it I) int {
+func Count[T any](it Iterator[T]) int {
 	var result int
 	ForEach(func(item T) { result++ }, it)
 	return result
 }
 
-func Max[T Number, I Iterable[T]](it I) T {
+func Max[T Number](it Iterator[T]) T {
 	var result T
 	ForEach(func(item Pair[int, T]) {
 		if item.First == 0 {
@@ -54,7 +53,7 @@ func Max[T Number, I Iterable[T]](it I) T {
 	return result
 }
 
-func Min[T Number, I Iterable[T]](it I) T {
+func Min[T Number](it Iterator[T]) T {
 	var result T
 	ForEach(func(item Pair[int, T]) {
 		if item.First == 0 {
@@ -66,16 +65,14 @@ func Min[T Number, I Iterable[T]](it I) T {
 	return result
 }
 
-func ForEach[T any, I Iterable[T]](action func(T), it I) {
-	var iter = it.Iter()
-	for v, ok := iter.Next().Get(); ok; v, ok = iter.Next().Get() {
+func ForEach[T any](action func(T), it Iterator[T]) {
+	for v, ok := it.Next().Get(); ok; v, ok = it.Next().Get() {
 		action(v)
 	}
 }
 
-func AllMatch[T any, I Iterable[T]](predicate func(T) bool, it I) bool {
-	var iter = it.Iter()
-	for v, ok := iter.Next().Get(); ok; v, ok = iter.Next().Get() {
+func AllMatch[T any](predicate func(T) bool, it Iterator[T]) bool {
+	for v, ok := it.Next().Get(); ok; v, ok = it.Next().Get() {
 		if !predicate(v) {
 			return false
 		}
@@ -83,9 +80,8 @@ func AllMatch[T any, I Iterable[T]](predicate func(T) bool, it I) bool {
 	return true
 }
 
-func NoneMatch[T any, I Iterable[T]](predicate func(T) bool, it I) bool {
-	var iter = it.Iter()
-	for v, ok := iter.Next().Get(); ok; v, ok = iter.Next().Get() {
+func NoneMatch[T any](predicate func(T) bool, it Iterator[T]) bool {
+	for v, ok := it.Next().Get(); ok; v, ok = it.Next().Get() {
 		if predicate(v) {
 			return false
 		}
@@ -93,9 +89,8 @@ func NoneMatch[T any, I Iterable[T]](predicate func(T) bool, it I) bool {
 	return true
 }
 
-func AnyMatch[T any, I Iterable[T]](predicate func(T) bool, it I) bool {
-	var iter = it.Iter()
-	for v, ok := iter.Next().Get(); ok; v, ok = iter.Next().Get() {
+func AnyMatch[T any](predicate func(T) bool, it Iterator[T]) bool {
+	for v, ok := it.Next().Get(); ok; v, ok = it.Next().Get() {
 		if predicate(v) {
 			return true
 		}
@@ -103,43 +98,39 @@ func AnyMatch[T any, I Iterable[T]](predicate func(T) bool, it I) bool {
 	return false
 }
 
-func First[T any, I Iterable[T]](it I) Option[T] {
-	return it.Iter().Next()
+func First[T any](it Iterator[T]) Option[T] {
+	return it.Next()
 }
 
-func Last[T any, I Iterable[T]](it I) Option[T] {
-	var iter = it.Iter()
-	var result = iter.Next()
+func Last[T any](it Iterator[T]) Option[T] {
+	var result = it.Next()
 	for result.IsSome() {
-		result = iter.Next()
+		result = it.Next()
 	}
 	return result
 }
 
-func At[T any, I Iterable[T]](index int, it I) Option[T] {
-	var iter = it.Iter()
-	var result = iter.Next()
+func At[T any](index int, it Iterator[T]) Option[T] {
+	var result = it.Next()
 	var i = 0
 	for i < index && result.IsSome() {
-		result = iter.Next()
+		result = it.Next()
 		i++
 	}
 	return result
 }
 
-func Reduce[T any, R any, I Iterable[T]](initial R, operation func(R, T) R, it I) R {
-	var iter = it.Iter()
+func Reduce[T any, R any](initial R, operation func(R, T) R, it Iterator[T]) R {
 	var result = initial
-	for v, ok := iter.Next().Get(); ok; v, ok = iter.Next().Get() {
+	for v, ok := it.Next().Get(); ok; v, ok = it.Next().Get() {
 		result = operation(result, v)
 	}
 	return result
 }
 
-func Fold[T any, R any, I Iterable[T]](initial R, operation func(T, R) R, it I) R {
+func Fold[T any, R any](initial R, operation func(T, R) R, it Iterator[T]) R {
 	var reverse = make([]T, 0)
-	var iter = it.Iter()
-	for v, ok := iter.Next().Get(); ok; v, ok = iter.Next().Get() {
+	for v, ok := it.Next().Get(); ok; v, ok = it.Next().Get() {
 		reverse = append(reverse, v)
 	}
 	var result = initial

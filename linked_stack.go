@@ -11,7 +11,7 @@ func LinkedStackOf[T any](elements ...T) LinkedStack[T] {
 
 func LinkedStackFrom[T any, I Collection[T]](collection I) LinkedStack[T] {
 	var stack = LinkedStackOf[T]()
-	ForEach(stack.Push, collection)
+	ForEach(stack.Push, collection.Iter())
 	return stack
 }
 
@@ -85,7 +85,7 @@ func (a LinkedStack[T]) ToSlice() []T {
 	var arr = make([]T, a.Size())
 	ForEach(func(t T) {
 		arr = append(arr, t)
-	}, a)
+	}, a.Iter())
 	return arr
 }
 
@@ -104,8 +104,4 @@ func (a *linkedStackIterator[T]) Next() Option[T] {
 		return Some(item)
 	}
 	return None[T]()
-}
-
-func (a *linkedStackIterator[T]) Iter() Iterator[T] {
-	return a
 }

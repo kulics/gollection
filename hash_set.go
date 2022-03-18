@@ -34,7 +34,7 @@ func HashSetFrom[T comparable, I Collection[T]](hasher func(data T) int, collect
 	var set = MakeHashSet(hasher, size)
 	ForEach(func(t T) {
 		set.Put(t)
-	}, collection)
+	}, collection.Iter())
 	return set
 }
 
@@ -99,7 +99,7 @@ func (a HashSet[T]) ToSlice() []T {
 	var arr = make([]T, a.Size())
 	ForEach(func(t T) {
 		arr = append(arr, t)
-	}, a)
+	}, a.Iter())
 	return arr
 }
 
@@ -117,8 +117,4 @@ func (a *hashSetIterator[T]) Next() Option[T] {
 		return Some(v.First)
 	}
 	return None[T]()
-}
-
-func (a *hashSetIterator[T]) Iter() Iterator[T] {
-	return a
 }

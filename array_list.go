@@ -51,7 +51,7 @@ func (a ArrayList[T]) PrependAll(elements Collection[T]) {
 		a.inner.elements[i] = item
 		a.inner.size++
 		i++
-	}, elements)
+	}, elements.Iter())
 }
 
 func (a ArrayList[T]) Append(element T) {
@@ -72,7 +72,7 @@ func (a ArrayList[T]) AppendAll(elements Collection[T]) {
 		a.inner.elements[i] = item
 		a.inner.size++
 		i++
-	}, elements)
+	}, elements.Iter())
 }
 
 func (a ArrayList[T]) Insert(index int, element T) {
@@ -100,7 +100,7 @@ func (a ArrayList[T]) InsertAll(index int, elements Collection[T]) {
 		a.inner.elements[i] = item
 		a.inner.size++
 		i++
-	}, elements)
+	}, elements.Iter())
 }
 
 func (a ArrayList[T]) Remove(index int) T {
@@ -236,8 +236,4 @@ func (a *arrayListIterator[T]) Next() Option[T] {
 		return Some(a.source.inner.elements[a.index])
 	}
 	return None[T]()
-}
-
-func (a *arrayListIterator[T]) Iter() Iterator[T] {
-	return a
 }
