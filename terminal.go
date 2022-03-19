@@ -11,7 +11,13 @@ func Contains[T comparable](target T, it Iterator[T]) bool {
 
 func Sum[T Number](it Iterator[T]) T {
 	var result T
-	ForEach(func(item T) { result += item }, it)
+	ForEach(func(item Pair[int, T]) {
+		if item.First == 0 {
+			result = item.Second
+		} else {
+			result += item.Second
+		}
+	}, Indexer(it))
 	return result
 }
 
@@ -23,7 +29,7 @@ func Product[T Number](it Iterator[T]) T {
 		} else {
 			result *= item.Second
 		}
-	}, Indexer[T](it))
+	}, Indexer(it))
 	return result
 }
 
@@ -31,7 +37,7 @@ func Average[T Number](it Iterator[T]) float64 {
 	var result float64
 	ForEach(func(item Pair[int, T]) {
 		result += (float64(item.Second) - result) / float64(item.First+1)
-	}, Indexer[T](it))
+	}, Indexer(it))
 	return result
 }
 
@@ -49,7 +55,7 @@ func Max[T Number](it Iterator[T]) T {
 		} else if result < item.Second {
 			result = item.Second
 		}
-	}, Indexer[T](it))
+	}, Indexer(it))
 	return result
 }
 
@@ -61,7 +67,7 @@ func Min[T Number](it Iterator[T]) T {
 		} else if result > item.Second {
 			result = item.Second
 		}
-	}, Indexer[T](it))
+	}, Indexer(it))
 	return result
 }
 
@@ -103,11 +109,13 @@ func First[T any](it Iterator[T]) Option[T] {
 }
 
 func Last[T any](it Iterator[T]) Option[T] {
-	var result = it.Next()
-	for result.IsSome() {
-		result = it.Next()
+	var curr = it.Next()
+	var last = curr
+	for curr.IsSome() {
+		last = curr
+		curr = it.Next()
 	}
-	return result
+	return last
 }
 
 func At[T any](index int, it Iterator[T]) Option[T] {
@@ -134,7 +142,7 @@ func Fold[T any, R any](initial R, operation func(T, R) R, it Iterator[T]) R {
 		reverse = append(reverse, v)
 	}
 	var result = initial
-	for i := len(reverse) - 1; i > 0; i-- {
+	for i := len(reverse) - 1; i >= 0; i-- {
 		result = operation(reverse[i], result)
 	}
 	return result
