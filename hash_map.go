@@ -57,7 +57,7 @@ func MakeStringMap[K ~string, V any](capacity int) HashMap[K, V] {
 	return MakeHashMap[K, V](StringHasher[K], capacity)
 }
 
-func HashMapFrom[K comparable, V any, I Collection[Pair[K, V]]](hasher func(data K) int, collection I) HashMap[K, V] {
+func HashMapFrom[K comparable, V any](hasher func(data K) int, collection Collection[Pair[K, V]]) HashMap[K, V] {
 	var size = collection.Size()
 	var dict = MakeHashMap[K, V](hasher, size)
 	ForEach(func(t Pair[K, V]) {
@@ -66,12 +66,12 @@ func HashMapFrom[K comparable, V any, I Collection[Pair[K, V]]](hasher func(data
 	return dict
 }
 
-func NumberMapFrom[K Number, V any, I Collection[Pair[K, V]]](collection I) HashMap[K, V] {
-	return HashMapFrom[K, V](NumberHasher[K], collection)
+func NumberMapFrom[K Number, V any](collection Collection[Pair[K, V]]) HashMap[K, V] {
+	return HashMapFrom(NumberHasher[K], collection)
 }
 
-func StringMapFrom[K ~string, V any, I Collection[Pair[K, V]]](collection I) HashMap[K, V] {
-	return HashMapFrom[K, V](StringHasher[K], collection)
+func StringMapFrom[K ~string, V any](collection Collection[Pair[K, V]]) HashMap[K, V] {
+	return HashMapFrom(StringHasher[K], collection)
 }
 
 func bucketsSizeFor(size int) int {

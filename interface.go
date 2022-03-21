@@ -78,4 +78,5 @@ type Stack[T any] interface {
 	Peek() T
 	TryPop() Option[T]
 	TryPeek() Option[T]
+	Clear()
 }

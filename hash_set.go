@@ -29,7 +29,7 @@ func MakeStringSet[T ~string](capacity int) HashSet[T] {
 	return MakeHashSet(StringHasher[T], capacity)
 }
 
-func HashSetFrom[T comparable, I Collection[T]](hasher func(data T) int, collection I) HashSet[T] {
+func HashSetFrom[T comparable](hasher func(data T) int, collection Collection[T]) HashSet[T] {
 	var size = collection.Size()
 	var set = MakeHashSet(hasher, size)
 	ForEach(func(t T) {
@@ -38,11 +38,11 @@ func HashSetFrom[T comparable, I Collection[T]](hasher func(data T) int, collect
 	return set
 }
 
-func NumberSetFrom[T Number, I Collection[T]](collection I) HashSet[T] {
+func NumberSetFrom[T Number](collection Collection[T]) HashSet[T] {
 	return HashSetFrom(NumberHasher[T], collection)
 }
 
-func StringSetFrom[T ~string, I Collection[T]](collection I) HashSet[T] {
+func StringSetFrom[T ~string](collection Collection[T]) HashSet[T] {
 	return HashSetFrom(StringHasher[T], collection)
 }
 

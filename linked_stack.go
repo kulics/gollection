@@ -9,7 +9,7 @@ func LinkedStackOf[T any](elements ...T) LinkedStack[T] {
 	return stack
 }
 
-func LinkedStackFrom[T any, I Collection[T]](collection I) LinkedStack[T] {
+func LinkedStackFrom[T any](collection Collection[T]) LinkedStack[T] {
 	var stack = LinkedStackOf[T]()
 	ForEach(stack.Push, collection.Iter())
 	return stack
@@ -91,6 +91,11 @@ func (a LinkedStack[T]) ToSlice() []T {
 
 func (a LinkedStack[T]) Clone() LinkedStack[T] {
 	return LinkedStackFrom[T](a)
+}
+
+func (a LinkedStack[T]) Clear() {
+	a.inner.size = 0
+	a.inner.first = nil
 }
 
 type linkedStackIterator[T any] struct {

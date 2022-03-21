@@ -2,20 +2,14 @@ package gollection
 
 import "testing"
 
-func TestArrayStack(t *testing.T) {
-	var stack = ArrayStackOf[int]()
+func TestLinkedStack(t *testing.T) {
+	var stack = LinkedStackOf[int]()
 	if stack.Size() != 0 {
 		t.Fatal("stack size not eq 0")
-	}
-	if stack.Capacity() != defaultElementsSize {
-		t.Fatal("stack capacity not eq defaultElementsSize")
 	}
 	stack.Push(1)
 	if stack.Size() != 1 {
 		t.Fatal("stack size not eq 1")
-	}
-	if stack.Capacity() != defaultElementsSize {
-		t.Fatal("stack capacity not eq defaultElementsSize")
 	}
 	if stack.Peek() != 1 {
 		t.Fatal("element of index 0 is not 1")
@@ -35,47 +29,21 @@ func TestArrayStack(t *testing.T) {
 	if stack.Size() != 11 {
 		t.Fatal("stack size not eq 11")
 	}
-	if stack.Capacity() != 15 {
-		t.Fatal("stack capacity not grow *1.5")
-	}
 	stack = stack.Clone()
 	if stack.Size() != 11 {
 		t.Fatal("stack size not eq 11")
-	}
-	if stack.Capacity() != 15 {
-		t.Fatal("stack capacity not grow *1.5")
 	}
 	stack.Clear()
 	if stack.Size() != 0 {
 		t.Fatal("stack size not eq 0")
 	}
-	if stack.Capacity() != 15 {
-		t.Fatal("stack capacity not grow *1.5")
-	}
-	stack.Reserve(10)
-	if stack.Size() != 0 {
-		t.Fatal("stack size not eq 0")
-	}
-	if stack.Capacity() != 15 {
-		t.Fatal("stack capacity not grow *1.5")
-	}
-	stack.Reserve(30)
-	if stack.Size() != 0 {
-		t.Fatal("stack size not eq 0")
-	}
-	if stack.Capacity() != 30 {
-		t.Fatal("stack capacity not grow to 30")
-	}
 	var slice = stack.ToSlice()
 	if len(slice) != 0 {
 		t.Fatal("ToSlice size not eq to 0")
 	}
-	var stackB = ArrayStackFrom[int](ArrayListOf(1, 2, 3))
+	var stackB = LinkedStackFrom[int](ArrayListOf(1, 2, 3))
 	if stackB.Size() != 3 {
 		t.Fatal("stack size not eq 3")
-	}
-	if stackB.Capacity() != 3 {
-		t.Fatal("stack capacity not eq 3")
 	}
 	var iter = stackB.Iter()
 	for i := 3; i >= 1; i-- {

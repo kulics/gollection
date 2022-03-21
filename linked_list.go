@@ -9,7 +9,7 @@ func LinkedListOf[T any](elements ...T) LinkedList[T] {
 	return list
 }
 
-func LinkedListFrom[T any, I Collection[T]](collection I) LinkedList[T] {
+func LinkedListFrom[T any](collection Collection[T]) LinkedList[T] {
 	var list = LinkedListOf[T]()
 	list.AppendAll(collection)
 	return list
@@ -92,7 +92,7 @@ func (a LinkedList[T]) AppendAll(elements Collection[T]) {
 }
 
 func (a LinkedList[T]) Insert(index int, element T) {
-	if a.isOutOfBounds(index) {
+	if index < 0 || index > a.inner.size {
 		panic(OutOfBounds)
 	}
 	if index == 0 {
@@ -103,7 +103,7 @@ func (a LinkedList[T]) Insert(index int, element T) {
 }
 
 func (a LinkedList[T]) InsertAll(index int, elements Collection[T]) {
-	if a.isOutOfBounds(index) {
+	if index < 0 || index > a.inner.size {
 		panic(OutOfBounds)
 	}
 	var size = elements.Size()

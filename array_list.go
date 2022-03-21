@@ -18,7 +18,7 @@ func MakeArrayList[T any](capacity int) ArrayList[T] {
 	return ArrayList[T]{inner}
 }
 
-func ArrayListFrom[T any, I Collection[T]](collection I) ArrayList[T] {
+func ArrayListFrom[T any](collection Collection[T]) ArrayList[T] {
 	var inner = &arrayList[T]{collection.ToSlice(), collection.Size()}
 	return ArrayList[T]{inner}
 }
@@ -33,25 +33,11 @@ type arrayList[T any] struct {
 }
 
 func (a ArrayList[T]) Prepend(element T) {
-	if growSize := a.inner.size + 1; len(a.inner.elements) < growSize {
-		a.grow(growSize)
-	}
-	copy(a.inner.elements[1:], a.inner.elements[0:])
-	a.inner.elements[0] = element
+	a.Insert(0, element)
 }
 
 func (a ArrayList[T]) PrependAll(elements Collection[T]) {
-	var additional = elements.Size()
-	if growSize := a.inner.size + additional; len(a.inner.elements) < growSize {
-		a.grow(growSize)
-	}
-	copy(a.inner.elements[additional:], a.inner.elements[0:])
-	var i = 0
-	ForEach(func(item T) {
-		a.inner.elements[i] = item
-		a.inner.size++
-		i++
-	}, elements.Iter())
+	a.InsertAll(0, elements)
 }
 
 func (a ArrayList[T]) Append(element T) {

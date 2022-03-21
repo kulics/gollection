@@ -16,7 +16,7 @@ func MakeArrayStack[T any](capacity int) ArrayStack[T] {
 	return ArrayStack[T]{inner}
 }
 
-func ArrayStackFrom[T any, I Collection[T]](collection I) ArrayStack[T] {
+func ArrayStackFrom[T any](collection Collection[T]) ArrayStack[T] {
 	var inner = &arrayStack[T]{collection.ToSlice(), collection.Size()}
 	return ArrayStack[T]{inner}
 }
