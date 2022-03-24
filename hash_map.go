@@ -5,19 +5,29 @@ import (
 	"unsafe"
 )
 
-func defaultHashCode[K comparable](k K) uint64 {
+func defaultHashCode[K comparable]() func(k K) uint64 {
 	var h maphash.Hash
-	var strKey = *(*string)(unsafe.Pointer(&struct {
-		data unsafe.Pointer
-		len  int
-	}{unsafe.Pointer(&k), int(unsafe.Sizeof(k))}))
-	h.WriteString(strKey)
-	return h.Sum64()
+	var seed = h.Seed()
+	return func(k K) uint64 {
+		var strKey string
+		switch v := ((any)(k)).(type) {
+		case string:
+			strKey = v
+		default:
+			strKey = *(*string)(unsafe.Pointer(&struct {
+				data unsafe.Pointer
+				len  int
+			}{unsafe.Pointer(&k), int(unsafe.Sizeof(k))}))
+		}
+		h.SetSeed(seed)
+		h.WriteString(strKey)
+		return h.Sum64()
+	}
 }
 
 func HashMapOf[K comparable, V any](elements ...Pair[K, V]) HashMap[K, V] {
 	var size = len(elements)
-	var dict = MakeHashMapWithHasher[K, V](defaultHashCode[K], size)
+	var dict = MakeHashMapWithHasher[K, V](defaultHashCode[K](), size)
 	for _, v := range elements {
 		dict.Put(v.First, v.Second)
 	}
@@ -25,7 +35,7 @@ func HashMapOf[K comparable, V any](elements ...Pair[K, V]) HashMap[K, V] {
 }
 
 func MakeHashMap[K comparable, V any](capacity int) HashMap[K, V] {
-	return MakeHashMapWithHasher[K, V](defaultHashCode[K], capacity)
+	return MakeHashMapWithHasher[K, V](defaultHashCode[K](), capacity)
 }
 
 func MakeHashMapWithHasher[K comparable, V any](hasher func(K) uint64, capacity int) HashMap[K, V] {
@@ -42,13 +52,14 @@ func MakeHashMapWithHasher[K comparable, V any](hasher func(K) uint64, capacity 
 		entries:    make([]entry[K, V], size),
 		hash:       hasher,
 		loadFactor: 1,
+		seed:       maphash.MakeSeed(),
 	}
 	return HashMap[K, V]{inner}
 }
 
 func HashMapFrom[K comparable, V any](collection Collection[Pair[K, V]]) HashMap[K, V] {
 	var size = collection.Size()
-	var dict = MakeHashMapWithHasher[K, V](defaultHashCode[K], size)
+	var dict = MakeHashMapWithHasher[K, V](defaultHashCode[K](), size)
 	ForEach(func(t Pair[K, V]) {
 		dict.Put(t.First, t.Second)
 	}, collection.Iter())
@@ -75,6 +86,7 @@ type hashMap[K comparable, V any] struct {
 	freeSize    int
 	hash        func(K) uint64
 	loadFactor  float64
+	seed        maphash.Seed
 }
 
 type entry[K any, V any] struct {
@@ -234,7 +246,7 @@ func (a HashMap[K, V]) Contains(key K) bool {
 }
 
 func (a HashMap[K, V]) Size() int {
-	return a.inner.appendCount - a.inner.freeSize + 1
+	return a.inner.appendCount - a.inner.freeSize
 }
 
 func (a HashMap[K, V]) IsEmpty() bool {
