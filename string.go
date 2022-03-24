@@ -38,7 +38,3 @@ func (a *stringIterator) Next() Option[rune] {
 	}
 	return None[rune]()
 }
-
-func (a *stringIterator) Iter() Iterator[rune] {
-	return a
-}
