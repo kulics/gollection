@@ -1,37 +1,34 @@
 package gollection
 
 import (
-	"hash/fnv"
+	"hash/maphash"
+	"unsafe"
 )
 
-func NumberHasher[T Number](t T) int {
-	return int(t)
+func defaultHashCode[K comparable](k K) uint64 {
+	var h maphash.Hash
+	var strKey = *(*string)(unsafe.Pointer(&struct {
+		data unsafe.Pointer
+		len  int
+	}{unsafe.Pointer(&k), int(unsafe.Sizeof(k))}))
+	h.WriteString(strKey)
+	return h.Sum64()
 }
 
-func StringHasher[T ~string](t T) int {
-	var h = fnv.New32a()
-	h.Write([]byte(t))
-	return int(h.Sum32())
-}
-
-func HashMapOf[K comparable, V any](hasher func(data K) int, elements ...Pair[K, V]) HashMap[K, V] {
+func HashMapOf[K comparable, V any](elements ...Pair[K, V]) HashMap[K, V] {
 	var size = len(elements)
-	var dict = MakeHashMap[K, V](hasher, size)
+	var dict = MakeHashMapWithHasher[K, V](defaultHashCode[K], size)
 	for _, v := range elements {
 		dict.Put(v.First, v.Second)
 	}
 	return dict
 }
 
-func NumberMapOf[K Number, V any](elements ...Pair[K, V]) HashMap[K, V] {
-	return HashMapOf(NumberHasher[K], elements...)
+func MakeHashMap[K comparable, V any](capacity int) HashMap[K, V] {
+	return MakeHashMapWithHasher[K, V](defaultHashCode[K], capacity)
 }
 
-func StringMapOf[K ~string, V any](elements ...Pair[K, V]) HashMap[K, V] {
-	return HashMapOf(StringHasher[K], elements...)
-}
-
-func MakeHashMap[K comparable, V any](hasher func(data K) int, capacity int) HashMap[K, V] {
+func MakeHashMapWithHasher[K comparable, V any](hasher func(K) uint64, capacity int) HashMap[K, V] {
 	var size = capacity
 	var buckets = make([]int, bucketsSizeFor(size))
 	for i := 0; i < len(buckets); i++ {
@@ -43,35 +40,19 @@ func MakeHashMap[K comparable, V any](hasher func(data K) int, capacity int) Has
 	var inner = &hashMap[K, V]{
 		buckets:    buckets,
 		entries:    make([]entry[K, V], size),
-		hasher:     hasher,
+		hash:       hasher,
 		loadFactor: 1,
 	}
 	return HashMap[K, V]{inner}
 }
 
-func MakeNumberMap[K Number, V any](capacity int) HashMap[K, V] {
-	return MakeHashMap[K, V](NumberHasher[K], capacity)
-}
-
-func MakeStringMap[K ~string, V any](capacity int) HashMap[K, V] {
-	return MakeHashMap[K, V](StringHasher[K], capacity)
-}
-
-func HashMapFrom[K comparable, V any](hasher func(data K) int, collection Collection[Pair[K, V]]) HashMap[K, V] {
+func HashMapFrom[K comparable, V any](collection Collection[Pair[K, V]]) HashMap[K, V] {
 	var size = collection.Size()
-	var dict = MakeHashMap[K, V](hasher, size)
+	var dict = MakeHashMapWithHasher[K, V](defaultHashCode[K], size)
 	ForEach(func(t Pair[K, V]) {
 		dict.Put(t.First, t.Second)
 	}, collection.Iter())
 	return dict
-}
-
-func NumberMapFrom[K Number, V any](collection Collection[Pair[K, V]]) HashMap[K, V] {
-	return HashMapFrom(NumberHasher[K], collection)
-}
-
-func StringMapFrom[K ~string, V any](collection Collection[Pair[K, V]]) HashMap[K, V] {
-	return HashMapFrom(StringHasher[K], collection)
 }
 
 func bucketsSizeFor(size int) int {
@@ -92,12 +73,12 @@ type hashMap[K comparable, V any] struct {
 	appendCount int
 	freeCount   int
 	freeSize    int
-	hasher      func(data K) int
+	hash        func(K) uint64
 	loadFactor  float64
 }
 
 type entry[K any, V any] struct {
-	hash  int
+	hash  uint64
 	key   K
 	value V
 	next  int
@@ -112,7 +93,7 @@ func (a HashMap[K, V]) Get(key K) V {
 }
 
 func (a HashMap[K, V]) Put(key K, value V) Option[V] {
-	var hash = a.inner.hasher(key)
+	var hash = a.inner.hash(key)
 	var index = a.index(hash)
 	for i := a.inner.buckets[index]; i >= 0; i = a.inner.entries[i].next {
 		var item = a.inner.entries[i]
@@ -164,7 +145,7 @@ func (a HashMap[K, V]) PutAll(elements Collection[Pair[K, V]]) {
 }
 
 func (a HashMap[K, V]) GetAndPut(key K, set func(oldValue Option[V]) V) Pair[V, Option[V]] {
-	var hash = a.inner.hasher(key)
+	var hash = a.inner.hash(key)
 	var index = a.index(hash)
 	for i := a.inner.buckets[index]; i >= 0; i = a.inner.entries[i].next {
 		var item = a.inner.entries[i]
@@ -207,7 +188,7 @@ func (a HashMap[K, V]) GetAndPut(key K, set func(oldValue Option[V]) V) Pair[V, 
 }
 
 func (a HashMap[K, V]) TryGet(key K) Option[V] {
-	var hash = a.inner.hasher(key)
+	var hash = a.inner.hash(key)
 	var index = a.index(hash)
 	for i := a.inner.buckets[index]; i >= 0; i = a.inner.entries[i].next {
 		var item = a.inner.entries[i]
@@ -219,7 +200,7 @@ func (a HashMap[K, V]) TryGet(key K) Option[V] {
 }
 
 func (a HashMap[K, V]) Remove(key K) Option[V] {
-	var hash = a.inner.hasher(key)
+	var hash = a.inner.hash(key)
 	var index = a.index(hash)
 	var last = -1
 	for i := a.inner.buckets[index]; i >= 0; i = a.inner.entries[i].next {
@@ -292,7 +273,7 @@ func (a HashMap[K, V]) Clone() HashMap[K, V] {
 		appendCount: a.inner.appendCount,
 		freeCount:   a.inner.freeCount,
 		freeSize:    a.inner.freeSize,
-		hasher:      a.inner.hasher,
+		hash:        a.inner.hash,
 		loadFactor:  a.inner.loadFactor,
 	}
 	return HashMap[K, V]{inner}
@@ -310,7 +291,7 @@ func (a HashMap[K, V]) grow(minCapacity int) bool {
 		}
 		for i, v := range a.inner.entries {
 			if v.alive {
-				var bucket = v.hash % newBucketsSize
+				var bucket = int(v.hash % uint64(newBucketsSize))
 				v.next = newBuckets[bucket]
 				a.inner.entries[i] = v
 				newBuckets[bucket] = i
@@ -331,8 +312,8 @@ func (a HashMap[K, V]) grow(minCapacity int) bool {
 	return isRehash
 }
 
-func (a HashMap[K, V]) index(hash int) int {
-	return hash % len(a.inner.buckets)
+func (a HashMap[K, V]) index(hash uint64) int {
+	return int(hash % uint64(len(a.inner.buckets)))
 }
 
 type hashMapIterator[K comparable, V any] struct {

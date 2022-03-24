@@ -1,49 +1,29 @@
 package gollection
 
-func HashSetOf[T comparable](hasher func(data T) int, elements ...T) HashSet[T] {
+func HashSetOf[T comparable](elements ...T) HashSet[T] {
 	var size = len(elements)
-	var set = MakeHashSet(hasher, size)
+	var set = MakeHashSet[T](size)
 	for _, v := range elements {
 		set.Put(v)
 	}
 	return set
 }
 
-func NumberSetOf[T Number](elements ...T) HashSet[T] {
-	return HashSetOf(NumberHasher[T], elements...)
+func MakeHashSet[T comparable](capacity int) HashSet[T] {
+	return HashSet[T]{MakeHashMap[T, Void](capacity)}
 }
 
-func StringSetOf[T ~string](elements ...T) HashSet[T] {
-	return HashSetOf(StringHasher[T], elements...)
+func MakeHashSetWithHasher[T comparable](hasher func(data T) uint64, capacity int) HashSet[T] {
+	return HashSet[T]{MakeHashMapWithHasher[T, Void](hasher, capacity)}
 }
 
-func MakeHashSet[T comparable](hasher func(data T) int, capacity int) HashSet[T] {
-	return HashSet[T]{MakeHashMap[T, Void](hasher, capacity)}
-}
-
-func MakeNumberSet[T Number](capacity int) HashSet[T] {
-	return MakeHashSet(NumberHasher[T], capacity)
-}
-
-func MakeStringSet[T ~string](capacity int) HashSet[T] {
-	return MakeHashSet(StringHasher[T], capacity)
-}
-
-func HashSetFrom[T comparable](hasher func(data T) int, collection Collection[T]) HashSet[T] {
+func HashSetFrom[T comparable](collection Collection[T]) HashSet[T] {
 	var size = collection.Size()
-	var set = MakeHashSet(hasher, size)
+	var set = MakeHashSet[T](size)
 	ForEach(func(t T) {
 		set.Put(t)
 	}, collection.Iter())
 	return set
-}
-
-func NumberSetFrom[T Number](collection Collection[T]) HashSet[T] {
-	return HashSetFrom(NumberHasher[T], collection)
-}
-
-func StringSetFrom[T ~string](collection Collection[T]) HashSet[T] {
-	return HashSetFrom(StringHasher[T], collection)
 }
 
 type HashSet[T comparable] struct {
