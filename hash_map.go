@@ -8,20 +8,25 @@ import (
 func defaultHashCode[K comparable]() func(k K) uint64 {
 	var h maphash.Hash
 	var seed = h.Seed()
-	return func(k K) uint64 {
-		var strKey string
-		switch v := ((any)(k)).(type) {
-		case string:
-			strKey = v
-		default:
-			strKey = *(*string)(unsafe.Pointer(&struct {
+	var k K
+	switch ((any)(k)).(type) {
+	case string:
+		return func(key K) uint64 {
+			var strKey = *(*string)(unsafe.Pointer(&key))
+			h.SetSeed(seed)
+			h.WriteString(strKey)
+			return h.Sum64()
+		}
+	default:
+		return func(key K) uint64 {
+			var strKey = *(*string)(unsafe.Pointer(&struct {
 				data unsafe.Pointer
 				len  int
 			}{unsafe.Pointer(&k), int(unsafe.Sizeof(k))}))
+			h.SetSeed(seed)
+			h.WriteString(strKey)
+			return h.Sum64()
 		}
-		h.SetSeed(seed)
-		h.WriteString(strKey)
-		return h.Sum64()
 	}
 }
 
