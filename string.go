@@ -1,13 +1,16 @@
 package gollection
 
+// Converts a built-in string to a String, which does not copy elements.
 func ToString(a string) String {
 	return String(a)
 }
 
+// Construct an iterator using the built-in string.
 func ToStringIter(a string) Iterator[rune] {
 	return &stringIterator{-1, []rune(a)}
 }
 
+// Collection is implemented via String, which is isomorphic to the built-in string.
 type String string
 
 func (a String) Iter() Iterator[rune] {

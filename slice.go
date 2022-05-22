@@ -1,13 +1,16 @@
 package gollection
 
+// Converts a built-in slice to a Slice, which does not copy elements.
 func ToSlice[T any](a []T) Slice[T] {
 	return Slice[T](a)
 }
 
+// Construct an iterator using the built-in slice.
 func ToSliceIter[T any](a []T) Iterator[T] {
 	return &sliceIterator[T]{-1, a}
 }
 
+// Collection is implemented via Slice, which is isomorphic to the built-in slice.
 type Slice[T any] []T
 
 func (a Slice[T]) Iter() Iterator[T] {

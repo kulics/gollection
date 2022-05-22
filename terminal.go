@@ -1,5 +1,6 @@
 package gollection
 
+// Returns true if the target is included in the iterator.
 func Contains[T comparable](target T, it Iterator[T]) bool {
 	for v, ok := it.Next().Get(); ok; v, ok = it.Next().Get() {
 		if v == target {
@@ -9,6 +10,7 @@ func Contains[T comparable](target T, it Iterator[T]) bool {
 	return false
 }
 
+// Returns the sum of all the elements in the iterator.
 func Sum[T Number](it Iterator[T]) T {
 	var result T
 	ForEach(func(item Pair[int, T]) {
@@ -21,6 +23,7 @@ func Sum[T Number](it Iterator[T]) T {
 	return result
 }
 
+// Returns the product of all the elements in the iterator.
 func Product[T Number](it Iterator[T]) T {
 	var result T
 	ForEach(func(item Pair[int, T]) {
@@ -33,6 +36,7 @@ func Product[T Number](it Iterator[T]) T {
 	return result
 }
 
+// Returns the average of all the elements in the iterator.
 func Average[T Number](it Iterator[T]) float64 {
 	var result float64
 	ForEach(func(item Pair[int, T]) {
@@ -41,12 +45,14 @@ func Average[T Number](it Iterator[T]) float64 {
 	return result
 }
 
+// Return the total number of iterators.
 func Count[T any](it Iterator[T]) int {
 	var result int
 	ForEach(func(item T) { result++ }, it)
 	return result
 }
 
+// Return the maximum value of all elements of the iterator.
 func Max[T Number](it Iterator[T]) T {
 	var result T
 	ForEach(func(item Pair[int, T]) {
@@ -59,6 +65,7 @@ func Max[T Number](it Iterator[T]) T {
 	return result
 }
 
+// Return the minimum value of all elements of the iterator.
 func Min[T Number](it Iterator[T]) T {
 	var result T
 	ForEach(func(item Pair[int, T]) {
@@ -71,12 +78,14 @@ func Min[T Number](it Iterator[T]) T {
 	return result
 }
 
+// The action is executed for each element of the iterator, and the argument to the action is the element.
 func ForEach[T any](action func(T), it Iterator[T]) {
 	for v, ok := it.Next().Get(); ok; v, ok = it.Next().Get() {
 		action(v)
 	}
 }
 
+// Returns true if all elements in the iterator match the condition.
 func AllMatch[T any](predicate func(T) bool, it Iterator[T]) bool {
 	for v, ok := it.Next().Get(); ok; v, ok = it.Next().Get() {
 		if !predicate(v) {
@@ -86,6 +95,7 @@ func AllMatch[T any](predicate func(T) bool, it Iterator[T]) bool {
 	return true
 }
 
+// Returns true if none elements in the iterator match the condition.
 func NoneMatch[T any](predicate func(T) bool, it Iterator[T]) bool {
 	for v, ok := it.Next().Get(); ok; v, ok = it.Next().Get() {
 		if predicate(v) {
@@ -95,6 +105,7 @@ func NoneMatch[T any](predicate func(T) bool, it Iterator[T]) bool {
 	return true
 }
 
+// Returns true if any elements in the iterator match the condition.
 func AnyMatch[T any](predicate func(T) bool, it Iterator[T]) bool {
 	for v, ok := it.Next().Get(); ok; v, ok = it.Next().Get() {
 		if predicate(v) {
@@ -104,10 +115,12 @@ func AnyMatch[T any](predicate func(T) bool, it Iterator[T]) bool {
 	return false
 }
 
+// Return the first element.
 func First[T any](it Iterator[T]) Option[T] {
 	return it.Next()
 }
 
+// Return the last element.
 func Last[T any](it Iterator[T]) Option[T] {
 	var curr = it.Next()
 	var last = curr
@@ -118,6 +131,7 @@ func Last[T any](it Iterator[T]) Option[T] {
 	return last
 }
 
+// Return the element at index.
 func At[T any](index int, it Iterator[T]) Option[T] {
 	var result = it.Next()
 	var i = 0
@@ -128,6 +142,7 @@ func At[T any](index int, it Iterator[T]) Option[T] {
 	return result
 }
 
+// Return the value of the final composite, operates on the iterator from front to back.
 func Reduce[T any, R any](initial R, operation func(R, T) R, it Iterator[T]) R {
 	var result = initial
 	for v, ok := it.Next().Get(); ok; v, ok = it.Next().Get() {
@@ -136,6 +151,7 @@ func Reduce[T any, R any](initial R, operation func(R, T) R, it Iterator[T]) R {
 	return result
 }
 
+// Return the value of the final composite, operates on the iterator from back to front.
 func Fold[T any, R any](initial R, operation func(T, R) R, it Iterator[T]) R {
 	var reverse = make([]T, 0)
 	for v, ok := it.Next().Get(); ok; v, ok = it.Next().Get() {

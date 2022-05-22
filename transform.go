@@ -1,5 +1,6 @@
 package gollection
 
+// Add subscripts to the incoming iterators.
 func Indexer[T any](it Iterator[T]) Iterator[Pair[int, T]] {
 	return &indexerStream[T]{-1, it}
 }
@@ -17,6 +18,7 @@ func (a *indexerStream[T]) Next() Option[Pair[int, T]] {
 	return None[Pair[int, T]]()
 }
 
+// Use transform to map an iterator to another iterator.
 func Mapper[T any, R any](transform func(T) R, it Iterator[T]) Iterator[R] {
 	return &mapperStream[T, R]{transform, it}
 }
@@ -33,6 +35,7 @@ func (a *mapperStream[T, R]) Next() Option[R] {
 	return None[R]()
 }
 
+// Use predecate to filter an iterator to another iterator。
 func Filter[T any](predecate func(T) bool, it Iterator[T]) Iterator[T] {
 	return &filterStream[T]{predecate, it}
 }
@@ -51,6 +54,7 @@ func (a *filterStream[T]) Next() Option[T] {
 	return None[T]()
 }
 
+// Convert an iterator to another iterator that limits the maximum number of iterations.
 func Limit[T any](count int, it Iterator[T]) Iterator[T] {
 	return &limitStream[T]{count, 0, it}
 }
@@ -69,6 +73,7 @@ func (a *limitStream[T]) Next() Option[T] {
 	return None[T]()
 }
 
+// Converts an iterator to another iterator that skips a specified number of times.
 func Skip[T any](count int, it Iterator[T]) Iterator[T] {
 	return &skipStream[T]{count, 0, it}
 }
@@ -90,6 +95,7 @@ func (a *skipStream[T]) Next() Option[T] {
 	return None[T]()
 }
 
+// Converts an iterator to another iterator that skips a specified number of times each time.
 func Step[T any](count int, it Iterator[T]) Iterator[T] {
 	return &stepStream[T]{count, count, it}
 }
@@ -112,6 +118,8 @@ func (a *stepStream[T]) Next() Option[T] {
 	return None[T]()
 }
 
+// By connecting two iterators in series,
+// the new iterator will iterate over the first iterator before continuing with the second iterator.
 func Concat[T any](left Iterator[T], right Iterator[T]) Iterator[T] {
 	return &concatStream[T]{false, left, right}
 }

@@ -1,22 +1,29 @@
+// A collection library based on the go generic implementation,
+// providing high performance and functional combinatorial capabilities.
 package gollection
 
+// Used to provide built-in computational constraints
 type Integer interface {
 	~int | ~int64 | ~int32 | ~int16 | ~int8 |
 		~uint64 | ~uint32 | ~uint16 | ~uint8
 }
 
+// Used to provide built-in computational constraints, adding floating point numbers over Integer.
 type Number interface {
 	Integer | ~float64 | ~float32
 }
 
+// Iterator can be obtained iteratively through Iter, and each iterator should be independent.
 type Iterable[T any] interface {
 	Iter() Iterator[T]
 }
 
+// By implementing Next you can perform iterations and end them when the return value is None.
 type Iterator[T any] interface {
 	Next() Option[T]
 }
 
+// Iterable's extended interfaces, can provide more information to optimize performance.
 type Collection[T any] interface {
 	Iterable[T]
 
@@ -25,6 +32,7 @@ type Collection[T any] interface {
 	ToSlice() []T
 }
 
+// Collection's extended interfaces, can provide more functional abstraction for ordered sequences.
 type List[T any] interface {
 	Collection[T]
 
@@ -44,6 +52,7 @@ type List[T any] interface {
 	Clear()
 }
 
+// Collection's extended interfaces, can provide more functional abstraction for maps.
 type Map[K any, V any] interface {
 	Collection[Pair[K, V]]
 
@@ -58,6 +67,7 @@ type Map[K any, V any] interface {
 	Clear()
 }
 
+// Collection's extended interfaces, can provide more functional abstraction for sets.
 type Set[T any] interface {
 	Collection[T]
 
@@ -70,6 +80,7 @@ type Set[T any] interface {
 	Clear()
 }
 
+// Collection's extended interfaces, can provide more functional abstraction for stacks.
 type Stack[T any] interface {
 	Collection[T]
 
