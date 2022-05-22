@@ -158,14 +158,13 @@ func (a LinkedList[T]) Set(index int, newElement T) T {
 	panic(OutOfBounds)
 }
 
-func (a LinkedList[T]) GetAndSet(index int, set func(oldElement T) T) Pair[T, T] {
+func (a LinkedList[T]) Update(index int, update func(oldElement T) T) T {
 	if a.isOutOfBounds(index) {
 		panic(OutOfBounds)
 	}
 	var x = a.at(index)
-	var oldValue = x.value
-	x.value = set(x.value)
-	return PairOf(x.value, oldValue)
+	x.value = update(x.value)
+	return x.value
 }
 
 func (a LinkedList[T]) TryGet(index int) Option[T] {

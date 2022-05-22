@@ -139,7 +139,7 @@ type List[T any] interface {
 
 	Get(index int) T
 	Set(index int, newElement T) T
-	GetAndSet(index int, set func(oldElement T) T) Pair[T, T]
+	Update(index int, update func(oldElement T) T) T
 	TryGet(index int) Option[T]
 	TrySet(index int, newElement T) Option[T]
 
@@ -165,7 +165,7 @@ type Map[K any, V any] interface {
 	Get(key K) V
 	Put(key K, value V) Option[V]
 	PutAll(elements Collection[Pair[K, V]])
-	GetAndPut(key K, set func(oldValue Option[V]) V) Pair[V, Option[V]]
+	Update(key K, update func(oldValue Option[V]) V) V
 	TryGet(key K) Option[V]
 
 	Remove(key K) Option[V]

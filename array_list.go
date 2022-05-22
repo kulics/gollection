@@ -138,13 +138,13 @@ func (a ArrayList[T]) Set(index int, newElement T) T {
 	panic(OutOfBounds)
 }
 
-func (a ArrayList[T]) GetAndSet(index int, set func(oldElement T) T) Pair[T, T] {
+func (a ArrayList[T]) Update(index int, update func(oldElement T) T) T {
 	if a.isOutOfBounds(index) {
 		panic(OutOfBounds)
 	}
 	var oldElement = a.inner.elements[index]
-	var newElement = set(oldElement)
-	return PairOf(newElement, oldElement)
+	var newElement = update(oldElement)
+	return newElement
 }
 
 // Return the element at the index.
