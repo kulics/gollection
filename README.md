@@ -123,7 +123,7 @@ We define a unified collection type interface to describe more information than 
 type Collection[T any] interface {
 	Iterable[T]
 
-	Length() int
+	Count() int
 	IsEmpty() bool
 	ToSlice() []T
 }
