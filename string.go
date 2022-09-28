@@ -17,7 +17,7 @@ func (a String) Iter() Iterator[rune] {
 	return &stringIterator{-1, []rune(a)}
 }
 
-func (a String) Size() int {
+func (a String) Length() int {
 	return len(a)
 }
 

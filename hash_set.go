@@ -1,8 +1,8 @@
 package gollection
 
 func HashSetOf[T comparable](elements ...T) HashSet[T] {
-	var size = len(elements)
-	var set = MakeHashSet[T](size)
+	var length = len(elements)
+	var set = MakeHashSet[T](length)
 	for _, v := range elements {
 		set.Put(v)
 	}
@@ -18,8 +18,8 @@ func MakeHashSetWithHasher[T comparable](hasher func(data T) uint64, capacity in
 }
 
 func HashSetFrom[T comparable](collection Collection[T]) HashSet[T] {
-	var size = collection.Size()
-	var set = MakeHashSet[T](size)
+	var length = collection.Count()
+	var set = MakeHashSet[T](length)
 	ForEach(func(t T) {
 		set.Put(t)
 	}, collection.Iter())
@@ -30,8 +30,8 @@ type HashSet[T comparable] struct {
 	inner HashMap[T, Void]
 }
 
-func (a HashSet[T]) Size() int {
-	return a.inner.Size()
+func (a HashSet[T]) Length() int {
+	return a.inner.Length()
 }
 
 func (a HashSet[T]) IsEmpty() bool {
@@ -76,7 +76,7 @@ func (a HashSet[T]) Iter() Iterator[T] {
 }
 
 func (a HashSet[T]) ToSlice() []T {
-	var arr = make([]T, a.Size())
+	var arr = make([]T, a.Length())
 	ForEach(func(t T) {
 		arr = append(arr, t)
 	}, a.Iter())

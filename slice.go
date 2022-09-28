@@ -17,7 +17,7 @@ func (a Slice[T]) Iter() Iterator[T] {
 	return &sliceIterator[T]{-1, a}
 }
 
-func (a Slice[T]) Size() int {
+func (a Slice[T]) Length() int {
 	return len(a)
 }
 

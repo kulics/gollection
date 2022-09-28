@@ -20,8 +20,8 @@ type LinkedStack[T any] struct {
 }
 
 type linkedStack[T any] struct {
-	size  int
-	first *oneWayNode[T]
+	length int
+	first  *oneWayNode[T]
 }
 
 type oneWayNode[T any] struct {
@@ -29,12 +29,12 @@ type oneWayNode[T any] struct {
 	next  *oneWayNode[T]
 }
 
-func (a LinkedStack[T]) Size() int {
-	return a.inner.size
+func (a LinkedStack[T]) Count() int {
+	return a.inner.length
 }
 
 func (a LinkedStack[T]) IsEmpty() bool {
-	return a.inner.size == 0
+	return a.inner.length == 0
 }
 
 func (a LinkedStack[T]) Push(element T) {
@@ -43,7 +43,7 @@ func (a LinkedStack[T]) Push(element T) {
 	} else {
 		a.inner.first = &oneWayNode[T]{element, a.inner.first}
 	}
-	a.inner.size++
+	a.inner.length++
 }
 
 func (a LinkedStack[T]) Pop() T {
@@ -64,7 +64,7 @@ func (a LinkedStack[T]) TryPop() Option[T] {
 	if a.inner.first == nil {
 		return None[T]()
 	}
-	a.inner.size--
+	a.inner.length--
 	var item = a.inner.first.value
 	a.inner.first = a.inner.first.next
 	return Some(item)
@@ -82,7 +82,7 @@ func (a LinkedStack[T]) Iter() Iterator[T] {
 }
 
 func (a LinkedStack[T]) ToSlice() []T {
-	var arr = make([]T, a.Size())
+	var arr = make([]T, a.Count())
 	ForEach(func(t T) {
 		arr = append(arr, t)
 	}, a.Iter())
@@ -94,7 +94,7 @@ func (a LinkedStack[T]) Clone() LinkedStack[T] {
 }
 
 func (a LinkedStack[T]) Clear() {
-	a.inner.size = 0
+	a.inner.length = 0
 	a.inner.first = nil
 }
 

@@ -1,15 +1,17 @@
 package gollection
 
-import "testing"
+import (
+	"testing"
+)
 
 func TestLinkedList(t *testing.T) {
 	var list = LinkedListOf[int]()
-	if list.Size() != 0 {
-		t.Fatal("list size not eq 0")
+	if list.Count() != 0 {
+		t.Fatal("list length not eq 0")
 	}
 	list.Append(1)
-	if list.Size() != 1 {
-		t.Fatal("list size not eq 1")
+	if list.Count() != 1 {
+		t.Fatal("list length not eq 1")
 	}
 	if list.Get(0) != 1 {
 		t.Fatal("element of index 0 is not 1")
@@ -29,39 +31,39 @@ func TestLinkedList(t *testing.T) {
 	for i := 0; i < 10; i++ {
 		list.Append(i)
 	}
-	if list.Size() != 11 {
-		t.Fatal("list size not eq 11")
+	if list.Count() != 11 {
+		t.Fatal("list length not eq 11")
 	}
 	list = list.Clone()
-	if list.Size() != 11 {
-		t.Fatal("list size not eq 11")
+	if list.Count() != 11 {
+		t.Fatal("list length not eq 11")
 	}
 	list.Clear()
-	if list.Size() != 0 {
-		t.Fatal("list size not eq 0")
+	if list.Count() != 0 {
+		t.Fatal("list length not eq 0")
 	}
 	var slice = list.ToSlice()
 	if len(slice) != 0 {
-		t.Fatal("ToSlice size not eq to 0")
+		t.Fatal("ToSlice length not eq to 0")
 	}
 	var listB = LinkedListFrom[int](ArrayListOf(1, 2, 3))
-	if listB.Size() != 3 {
-		t.Fatal("list size not eq 3")
+	if listB.Count() != 3 {
+		t.Fatal("list length not eq 3")
 	}
 	list.PrependAll(listB)
-	if list.Size() != 3 {
-		t.Fatal("list size not eq 3")
+	if list.Count() != 3 {
+		t.Fatal("list length not eq 3")
 	}
-	var iter = list.Iter()
+	var it = list.Iter()
 	for i := 1; i <= 3; i++ {
-		var item = iter.Next()
-		if i != item.value {
+		var item = it.Next()
+		if i != item.OrPanic() {
 			t.Fatal("element error")
 		}
 	}
 	list.PrependAll(ArrayListOf(1, 2, 3))
-	if list.Size() != 6 {
-		t.Fatal("list size not eq 6")
+	if list.Count() != 6 {
+		t.Fatal("list length not eq 6")
 	}
 	if list.GetFirst() != 1 {
 		t.Fatal("first elements of list is not 1")
@@ -81,4 +83,17 @@ func TestLinkedList(t *testing.T) {
 	if list.GetLast() != 2 {
 		t.Fatal("last elements of list is not 2")
 	}
+	list = LinkedListOf(1, 2, 3, 1, 2, 3)
+	if list.Count() != 6 {
+		t.Fatal("list length not eq 6")
+	}
+	list.RemoveRange(RangeOf(1, 5))
+	if d := list.Count(); d != 2 {
+		t.Fatalf("list length not eq 2, is %d", d)
+	}
+	if !EqualsList[int](ArrayListOf(1, 3), list) {
+		t.Fatal("list elements not expect")
+	}
+	var _ AnyList[int] = list
+	var _ AnyMutableList[int] = list
 }

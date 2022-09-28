@@ -20,15 +20,19 @@ type LinkedList[T any] struct {
 }
 
 type linkedList[T any] struct {
-	size  int
-	first *twoWayNode[T]
-	last  *twoWayNode[T]
+	length int
+	first  *twoWayNode[T]
+	last   *twoWayNode[T]
 }
 
 type twoWayNode[T any] struct {
 	value T
 	next  *twoWayNode[T]
 	prev  *twoWayNode[T]
+}
+
+func (a LinkedList[T]) LastIndex() int {
+	return a.inner.length - 1
 }
 
 func (a LinkedList[T]) GetFirst() T {
@@ -88,11 +92,11 @@ func (a LinkedList[T]) Append(element T) {
 }
 
 func (a LinkedList[T]) AppendAll(elements Collection[T]) {
-	a.InsertAll(a.inner.size, elements)
+	a.InsertAll(a.inner.length, elements)
 }
 
 func (a LinkedList[T]) Insert(index int, element T) {
-	if index < 0 || index > a.inner.size {
+	if index < 0 || index > a.inner.length {
 		panic(OutOfBounds)
 	}
 	if index == 0 {
@@ -103,15 +107,15 @@ func (a LinkedList[T]) Insert(index int, element T) {
 }
 
 func (a LinkedList[T]) InsertAll(index int, elements Collection[T]) {
-	if index < 0 || index > a.inner.size {
+	if index < 0 || index > a.inner.length {
 		panic(OutOfBounds)
 	}
-	var size = elements.Size()
-	if size == 0 {
+	var length = elements.Count()
+	if length == 0 {
 		return
 	}
 	var pred, succ *twoWayNode[T]
-	if index == a.inner.size {
+	if index == a.inner.length {
 		succ = nil
 		pred = a.inner.last
 	} else {
@@ -134,14 +138,34 @@ func (a LinkedList[T]) InsertAll(index int, elements Collection[T]) {
 		pred.next = succ
 		succ.prev = pred
 	}
-	a.inner.size += size
+	a.inner.length += length
 }
 
-func (a LinkedList[T]) Remove(index int) T {
+func (a LinkedList[T]) RemoveAt(index int) T {
 	if a.isOutOfBounds(index) {
 		panic(OutOfBounds)
 	}
 	return a.unlink(a.at(index))
+}
+
+func (a LinkedList[T]) RemoveRange(at Range[int]) {
+	var begin, end = at.Get()
+	if a.isOutOfBounds(begin) || a.isOutOfBounds(end) {
+		panic(OutOfBounds)
+	}
+	if end == begin {
+		return
+	}
+	var first = a.at(begin - 1)
+	var last = first.next
+	var index = begin
+	for index < end {
+		last = last.next
+		index++
+	}
+	first.next = last
+	last.prev = first
+	a.inner.length -= end - begin
 }
 
 func (a LinkedList[T]) Get(index int) T {
@@ -165,6 +189,14 @@ func (a LinkedList[T]) Update(index int, update func(oldElement T) T) T {
 	var x = a.at(index)
 	x.value = update(x.value)
 	return x.value
+}
+
+func (a LinkedList[T]) UpdateAll(update func(oldElement T) T) {
+	var first = a.inner.first
+	for first == nil {
+		first.value = update(first.value)
+		first = first.next
+	}
 }
 
 func (a LinkedList[T]) TryGet(index int) Option[T] {
@@ -195,15 +227,15 @@ func (a LinkedList[T]) Clear() {
 	}
 	a.inner.first = nil
 	a.inner.last = nil
-	a.inner.size = 0
+	a.inner.length = 0
 }
 
-func (a LinkedList[T]) Size() int {
-	return a.inner.size
+func (a LinkedList[T]) Count() int {
+	return a.inner.length
 }
 
 func (a LinkedList[T]) IsEmpty() bool {
-	return a.inner.size == 0
+	return a.inner.length == 0
 }
 
 func (a LinkedList[T]) Iter() Iterator[T] {
@@ -211,7 +243,7 @@ func (a LinkedList[T]) Iter() Iterator[T] {
 }
 
 func (a LinkedList[T]) ToSlice() []T {
-	var arr = make([]T, a.Size())
+	var arr = make([]T, a.Count())
 	ForEach(func(t T) {
 		arr = append(arr, t)
 	}, a.Iter())
@@ -223,14 +255,14 @@ func (a LinkedList[T]) Clone() LinkedList[T] {
 }
 
 func (a LinkedList[T]) isOutOfBounds(index int) bool {
-	if index < 0 || index >= a.inner.size {
+	if index < 0 || index >= a.inner.length {
 		return true
 	}
 	return false
 }
 
 func (a LinkedList[T]) at(index int) *twoWayNode[T] {
-	if index < (a.inner.size >> 1) {
+	if index < (a.inner.length >> 1) {
 		var x = a.inner.first
 		for i := 0; i < index; i++ {
 			x = x.next
@@ -238,7 +270,7 @@ func (a LinkedList[T]) at(index int) *twoWayNode[T] {
 		return x
 	} else {
 		var x = a.inner.last
-		for i := a.inner.size - 1; i > index; i-- {
+		for i := a.inner.length - 1; i > index; i-- {
 			x = x.prev
 		}
 		return x
@@ -254,7 +286,7 @@ func (a LinkedList[T]) linkFirst(element T) {
 	} else {
 		first.prev = newNode
 	}
-	a.inner.size++
+	a.inner.length++
 }
 
 func (a LinkedList[T]) linkLast(element T) {
@@ -266,7 +298,7 @@ func (a LinkedList[T]) linkLast(element T) {
 	} else {
 		last.next = newNode
 	}
-	a.inner.size++
+	a.inner.length++
 }
 
 func (a LinkedList[T]) linkBefore(element T, succ *twoWayNode[T]) {
@@ -278,7 +310,7 @@ func (a LinkedList[T]) linkBefore(element T, succ *twoWayNode[T]) {
 	} else {
 		pred.next = newNode
 	}
-	a.inner.size++
+	a.inner.length++
 }
 
 func (a LinkedList[T]) unlink(x *twoWayNode[T]) T {
@@ -300,7 +332,7 @@ func (a LinkedList[T]) unlink(x *twoWayNode[T]) T {
 	}
 	var empty T
 	x.value = empty
-	a.inner.size--
+	a.inner.length--
 	return element
 }
 
@@ -316,7 +348,7 @@ func (a LinkedList[T]) unlinkFirst(x *twoWayNode[T]) T {
 	} else {
 		next.prev = nil
 	}
-	a.inner.size--
+	a.inner.length--
 	return element
 }
 
@@ -332,7 +364,7 @@ func (a LinkedList[T]) unlinkLast(x *twoWayNode[T]) T {
 	} else {
 		prev.next = nil
 	}
-	a.inner.size--
+	a.inner.length--
 	return element
 }
 

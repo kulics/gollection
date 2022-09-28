@@ -1,5 +1,7 @@
 package gollection
 
+import "golang.org/x/exp/constraints"
+
 // Returns true if the target is included in the iterator.
 func Contains[T comparable](target T, it Iterator[T]) bool {
 	for v, ok := it.Next().Get(); ok; v, ok = it.Next().Get() {
@@ -11,7 +13,7 @@ func Contains[T comparable](target T, it Iterator[T]) bool {
 }
 
 // Returns the sum of all the elements in the iterator.
-func Sum[T Number](it Iterator[T]) T {
+func Sum[T constraints.Integer](it Iterator[T]) T {
 	var result T
 	ForEach(func(item Pair[int, T]) {
 		if item.First == 0 {
@@ -19,12 +21,12 @@ func Sum[T Number](it Iterator[T]) T {
 		} else {
 			result += item.Second
 		}
-	}, Indexer(it))
+	}, Index(it))
 	return result
 }
 
 // Returns the product of all the elements in the iterator.
-func Product[T Number](it Iterator[T]) T {
+func Product[T constraints.Integer](it Iterator[T]) T {
 	var result T
 	ForEach(func(item Pair[int, T]) {
 		if item.First == 0 {
@@ -32,16 +34,16 @@ func Product[T Number](it Iterator[T]) T {
 		} else {
 			result *= item.Second
 		}
-	}, Indexer(it))
+	}, Index(it))
 	return result
 }
 
 // Returns the average of all the elements in the iterator.
-func Average[T Number](it Iterator[T]) float64 {
+func Average[T constraints.Integer](it Iterator[T]) float64 {
 	var result float64
 	ForEach(func(item Pair[int, T]) {
 		result += (float64(item.Second) - result) / float64(item.First+1)
-	}, Indexer(it))
+	}, Index(it))
 	return result
 }
 
@@ -53,7 +55,7 @@ func Count[T any](it Iterator[T]) int {
 }
 
 // Return the maximum value of all elements of the iterator.
-func Max[T Number](it Iterator[T]) T {
+func Max[T constraints.Integer](it Iterator[T]) T {
 	var result T
 	ForEach(func(item Pair[int, T]) {
 		if item.First == 0 {
@@ -61,12 +63,12 @@ func Max[T Number](it Iterator[T]) T {
 		} else if result < item.Second {
 			result = item.Second
 		}
-	}, Indexer(it))
+	}, Index(it))
 	return result
 }
 
 // Return the minimum value of all elements of the iterator.
-func Min[T Number](it Iterator[T]) T {
+func Min[T constraints.Integer](it Iterator[T]) T {
 	var result T
 	ForEach(func(item Pair[int, T]) {
 		if item.First == 0 {
@@ -74,7 +76,7 @@ func Min[T Number](it Iterator[T]) T {
 		} else if result > item.Second {
 			result = item.Second
 		}
-	}, Indexer(it))
+	}, Index(it))
 	return result
 }
 

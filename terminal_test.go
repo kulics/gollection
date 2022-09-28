@@ -1,9 +1,11 @@
 package gollection
 
-import "testing"
+import (
+	"testing"
+)
 
 func TestTerminal(t *testing.T) {
-	var datas = ArrayListOf(1, 2, 3, 4, 5)
+	var datas = Slice[int]([]int{1, 2, 3, 4, 5})
 	if !Contains(3, datas.Iter()) {
 		t.Fatal("Contains error")
 	}

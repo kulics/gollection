@@ -31,8 +31,8 @@ func defaultHashCode[K comparable]() func(k K) uint64 {
 }
 
 func HashMapOf[K comparable, V any](elements ...Pair[K, V]) HashMap[K, V] {
-	var size = len(elements)
-	var dict = MakeHashMapWithHasher[K, V](defaultHashCode[K](), size)
+	var length = len(elements)
+	var dict = MakeHashMapWithHasher[K, V](defaultHashCode[K](), length)
 	for _, v := range elements {
 		dict.Put(v.First, v.Second)
 	}
@@ -44,17 +44,17 @@ func MakeHashMap[K comparable, V any](capacity int) HashMap[K, V] {
 }
 
 func MakeHashMapWithHasher[K comparable, V any](hasher func(K) uint64, capacity int) HashMap[K, V] {
-	var size = capacity
-	var buckets = make([]int, bucketsSizeFor(size))
+	var length = capacity
+	var buckets = make([]int, bucketsLengthFor(length))
 	for i := 0; i < len(buckets); i++ {
 		buckets[i] = -1
 	}
-	if size < defaultElementsSize {
-		size = defaultElementsSize
+	if length < defaultElementsLength {
+		length = defaultElementsLength
 	}
 	var inner = &hashMap[K, V]{
 		buckets:    buckets,
-		entries:    make([]entry[K, V], size),
+		entries:    make([]entry[K, V], length),
 		hash:       hasher,
 		loadFactor: 1,
 		seed:       maphash.MakeSeed(),
@@ -63,20 +63,20 @@ func MakeHashMapWithHasher[K comparable, V any](hasher func(K) uint64, capacity 
 }
 
 func HashMapFrom[K comparable, V any](collection Collection[Pair[K, V]]) HashMap[K, V] {
-	var size = collection.Size()
-	var dict = MakeHashMapWithHasher[K, V](defaultHashCode[K](), size)
+	var length = collection.Count()
+	var dict = MakeHashMapWithHasher[K, V](defaultHashCode[K](), length)
 	ForEach(func(t Pair[K, V]) {
 		dict.Put(t.First, t.Second)
 	}, collection.Iter())
 	return dict
 }
 
-func bucketsSizeFor(size int) int {
-	var bucketsSize = 16
-	for bucketsSize < size {
-		bucketsSize = bucketsSize * 2
+func bucketsLengthFor(length int) int {
+	var bucketsLength = 16
+	for bucketsLength < length {
+		bucketsLength = bucketsLength * 2
 	}
-	return bucketsSize
+	return bucketsLength
 }
 
 type HashMap[K comparable, V any] struct {
@@ -88,7 +88,7 @@ type hashMap[K comparable, V any] struct {
 	entries     []entry[K, V]
 	appendCount int
 	freeCount   int
-	freeSize    int
+	freeLength  int
 	hash        func(K) uint64
 	loadFactor  float64
 	seed        maphash.Seed
@@ -127,12 +127,12 @@ func (a HashMap[K, V]) Put(key K, value V) Option[V] {
 		}
 	}
 	var bucket int
-	if a.inner.freeSize > 0 {
+	if a.inner.freeLength > 0 {
 		bucket = a.inner.freeCount
 		a.inner.freeCount = a.inner.entries[a.inner.freeCount].next
-		a.inner.freeSize--
+		a.inner.freeLength--
 	} else {
-		if a.grow(a.Size() + 1) {
+		if a.grow(a.Length() + 1) {
 			index = a.index(hash)
 		}
 		bucket = a.inner.appendCount
@@ -152,8 +152,8 @@ func (a HashMap[K, V]) Put(key K, value V) Option[V] {
 
 func (a HashMap[K, V]) PutAll(elements Collection[Pair[K, V]]) {
 	var iter = elements.Iter()
-	if size, addSize := a.Size(), elements.Size(); size < addSize {
-		a.grow(addSize)
+	if length, addLength := a.Length(), elements.Count(); length < addLength {
+		a.grow(addLength)
 	}
 	for item, ok := iter.Next().Get(); ok; item, ok = iter.Next().Get() {
 		var k, v = item.Get()
@@ -180,12 +180,12 @@ func (a HashMap[K, V]) Update(key K, update func(oldValue Option[V]) V) V {
 		}
 	}
 	var bucket int
-	if a.inner.freeSize > 0 {
+	if a.inner.freeLength > 0 {
 		bucket = a.inner.freeCount
 		a.inner.freeCount = a.inner.entries[a.inner.freeCount].next
-		a.inner.freeSize--
+		a.inner.freeLength--
 	} else {
-		if a.grow(a.Size() + 1) {
+		if a.grow(a.Length() + 1) {
 			index = a.index(hash)
 		}
 		bucket = a.inner.appendCount
@@ -250,12 +250,12 @@ func (a HashMap[K, V]) Contains(key K) bool {
 	return a.TryGet(key).IsSome()
 }
 
-func (a HashMap[K, V]) Size() int {
-	return a.inner.appendCount - a.inner.freeSize
+func (a HashMap[K, V]) Length() int {
+	return a.inner.appendCount - a.inner.freeLength
 }
 
 func (a HashMap[K, V]) IsEmpty() bool {
-	return a.Size() == 0
+	return a.Length() == 0
 }
 
 func (a HashMap[K, V]) Clear() {
@@ -272,7 +272,7 @@ func (a HashMap[K, V]) Iter() Iterator[Pair[K, V]] {
 }
 
 func (a HashMap[K, V]) ToSlice() []Pair[K, V] {
-	var arr = make([]Pair[K, V], a.Size())
+	var arr = make([]Pair[K, V], a.Length())
 	ForEach(func(t Pair[K, V]) {
 		arr = append(arr, t)
 	}, a.Iter())
@@ -289,7 +289,7 @@ func (a HashMap[K, V]) Clone() HashMap[K, V] {
 		entries:     entries,
 		appendCount: a.inner.appendCount,
 		freeCount:   a.inner.freeCount,
-		freeSize:    a.inner.freeSize,
+		freeLength:  a.inner.freeLength,
 		hash:        a.inner.hash,
 		loadFactor:  a.inner.loadFactor,
 	}
@@ -297,18 +297,18 @@ func (a HashMap[K, V]) Clone() HashMap[K, V] {
 }
 
 func (a HashMap[K, V]) grow(minCapacity int) bool {
-	var entriesSize = len(a.inner.entries)
-	var bucketsSize = len(a.inner.buckets)
+	var entriesLength = len(a.inner.entries)
+	var bucketsLength = len(a.inner.buckets)
 	var isRehash = false
-	if float64(minCapacity/bucketsSize) > a.inner.loadFactor {
-		var newBucketsSize = bucketsSize * 2
-		var newBuckets = make([]int, newBucketsSize)
+	if float64(minCapacity/bucketsLength) > a.inner.loadFactor {
+		var newBucketsLength = bucketsLength * 2
+		var newBuckets = make([]int, newBucketsLength)
 		for i := 0; i < len(newBuckets); i++ {
 			newBuckets[i] = -1
 		}
 		for i, v := range a.inner.entries {
 			if v.alive {
-				var bucket = int(v.hash % uint64(newBucketsSize))
+				var bucket = int(v.hash % uint64(newBucketsLength))
 				v.next = newBuckets[bucket]
 				a.inner.entries[i] = v
 				newBuckets[bucket] = i
@@ -317,12 +317,12 @@ func (a HashMap[K, V]) grow(minCapacity int) bool {
 		a.inner.buckets = newBuckets
 		isRehash = true
 	}
-	if minCapacity > entriesSize {
-		var newSize = entriesSize + (entriesSize >> 1)
-		if newSize < minCapacity {
-			newSize = minCapacity
+	if minCapacity > entriesLength {
+		var newLength = entriesLength + (entriesLength >> 1)
+		if newLength < minCapacity {
+			newLength = minCapacity
 		}
-		var newEntries = make([]entry[K, V], newSize)
+		var newEntries = make([]entry[K, V], newLength)
 		copy(newEntries, a.inner.entries)
 		a.inner.entries = newEntries
 	}

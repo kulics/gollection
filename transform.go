@@ -1,7 +1,7 @@
 package gollection
 
 // Add subscripts to the incoming iterators.
-func Indexer[T any](it Iterator[T]) Iterator[Pair[int, T]] {
+func Index[T any](it Iterator[T]) Iterator[Pair[int, T]] {
 	return &indexerStream[T]{-1, it}
 }
 
@@ -19,16 +19,16 @@ func (a *indexerStream[T]) Next() Option[Pair[int, T]] {
 }
 
 // Use transform to map an iterator to another iterator.
-func Mapper[T any, R any](transform func(T) R, it Iterator[T]) Iterator[R] {
-	return &mapperStream[T, R]{transform, it}
+func Map[T any, R any](transform func(T) R, it Iterator[T]) Iterator[R] {
+	return &mapStream[T, R]{transform, it}
 }
 
-type mapperStream[T any, R any] struct {
+type mapStream[T any, R any] struct {
 	transform func(T) R
 	iterator  Iterator[T]
 }
 
-func (a *mapperStream[T, R]) Next() Option[R] {
+func (a *mapStream[T, R]) Next() Option[R] {
 	if v, ok := a.iterator.Next().Get(); ok {
 		return Some(a.transform(v))
 	}

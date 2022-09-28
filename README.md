@@ -52,7 +52,7 @@ func foo() {
 	square := func(i int) int {
 		return i * i
 	}
-	ForEach(show, Mapper(square, Filter(even, ToSliceIter([]int{1, 2, 3, 4, 5, 6, 7}))))
+	ForEach(show, Map(square, Filter(even, ToSliceIter([]int{1, 2, 3, 4, 5, 6, 7}))))
     // Result:
     // 4
     // 16
@@ -65,8 +65,8 @@ func foo() {
 A series of conversion functions are provided to process one Iterable conversion to another Iterable. these conversions are not executed immediately and only act one at a time when iterating.
 
 ```go
-func Indexer[T any](it Iterator[T]) Iterator[Pair[int, T]]
-func Mapper[T any, R any](transform func(T) R, it Iterator[T]) Iterator[R]
+func Index[T any](it Iterator[T]) Iterator[Pair[int, T]]
+func Map[T any, R any](transform func(T) R, it Iterator[T]) Iterator[R]
 func Filter[T any](predecate func(T) bool, it Iterator[T]) Iterator[T]
 func Limit[T any](count int, it Iterator[T]) Iterator[T]
 func Skip[T any](count int, it Iterator[T]) Iterator[T]
@@ -123,7 +123,7 @@ We define a unified collection type interface to describe more information than 
 type Collection[T any] interface {
 	Iterable[T]
 
-	Size() int
+	Length() int
 	IsEmpty() bool
 	ToSlice() []T
 }
@@ -131,80 +131,119 @@ type Collection[T any] interface {
 
 ## List
 
-We provide the List interface to unify the description of ordered sequences, and provide `ArrayList` and `LinkedList` as its implementation types.
+We provide the `AnyList` interface and `AnyMutableList` interface to unify the description of ordered sequences, and provide `ArrayList` and `LinkedList` as its implementation types.
 
 ```go
-type List[T any] interface {
+type AnyList[T any] interface {
 	Collection[T]
 
+	LastIndex() int
+
 	Get(index int) T
-	Set(index int, newElement T) T
-	Update(index int, update func(oldElement T) T) T
 	TryGet(index int) Option[T]
+
+	GetFirst() T
+	TryGetFirst() Option[T]
+
+	GetLast() T
+	TryGetLast() Option[T]
+}
+
+type AnyMutableList[T any] interface {
+	AnyList[T]
+
+	Set(index int, newElement T) T
 	TrySet(index int, newElement T) Option[T]
 
 	Prepend(element T)
 	PrependAll(elements Collection[T])
+
 	Append(element T)
 	AppendAll(elements Collection[T])
+
 	Insert(index int, element T)
 	InsertAll(index int, elements Collection[T])
-	Remove(index int) T
+
+	RemoveAt(index int) T
+	RemoveRange(at Range[int])
+
 	Clear()
 }
 ```
 
 ### Map
 
-We provide the Map interface to unify the description of the mapping type, and provide `HashMap` as its implementation type.
+We provide the `AnyMap` interface and `AnyMutableMay` interface to unify the description of the mapping type, and provide `HashMap` as its implementation type.
 
 ```go
-type Map[K any, V any] interface {
+type AnyMap[K any, V any] interface {
 	Collection[Pair[K, V]]
 
 	Get(key K) V
-	Put(key K, value V) Option[V]
-	PutAll(elements Collection[Pair[K, V]])
-	Update(key K, update func(oldValue Option[V]) V) V
 	TryGet(key K) Option[V]
 
-	Remove(key K) Option[V]
 	Contains(key K) bool
+}
+
+type AnyMutableMap[K any, V any] interface {
+	AnyMap[K, V]
+
+	Put(key K, value V) Option[V]
+	PutAll(elements Collection[Pair[K, V]]) bool
+
+	Remove(key K) Option[V]
+	RemoveWhere(predicate func(K, V) bool)
+	RemoveAll(elements Collection[K]) bool
+
 	Clear()
 }
 ```
 
 ### Set
 
-We provide the Set interface to describe the element-unique collection type, and we provide `HashSet` as its implementation type.
+We provide the `AnySet` interface and `AnyMutableSet` interface to describe the element-unique collection type, and we provide `HashSet` as its implementation type.
 
 ```go
-type Set[T any] interface {
+type AnySet[T any] interface {
 	Collection[T]
 
-	Put(element T) bool
-	PutAll(elements Collection[T])
-
-	Remove(element T) bool
 	Contains(element T) bool
 	ContainsAll(elements Collection[T]) bool
+}
+
+type AnyMutableSet[T any] interface {
+	AnySet[T]
+
+	Put(element T) bool
+	PutAll(elements Collection[T]) bool
+
+	Remove(element T) bool
+	RemoveWhere(predicate func(T) bool)
+	RemoveAll(elements Collection[T]) bool
+
+	RetainAll(elements Collection[T]) bool
+
 	Clear()
 }
 ```
 
 ### Stack
 
-We provide the Stack interface to describe the stack data structure and provide `ArrayStack` and `LinkedStack` as its implementation types.
+We provide the `AnyStack` interface to describe the stack data structure and provide `ArrayStack` and `LinkedStack` as its implementation types.
 
 ```go
-type Stack[T any] interface {
+type AnyStack[T any] interface {
 	Collection[T]
 
 	Push(element T)
+
 	Pop() T
-	Peek() T
 	TryPop() Option[T]
+
+	Peek() T
 	TryPeek() Option[T]
+
+	Clear()
 }
 ```
 
