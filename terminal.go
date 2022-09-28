@@ -21,7 +21,7 @@ func Sum[T constraints.Integer](it Iterator[T]) T {
 		} else {
 			result += item.Second
 		}
-	}, Index(it))
+	}, Enumerate(it))
 	return result
 }
 
@@ -34,7 +34,7 @@ func Product[T constraints.Integer](it Iterator[T]) T {
 		} else {
 			result *= item.Second
 		}
-	}, Index(it))
+	}, Enumerate(it))
 	return result
 }
 
@@ -43,7 +43,7 @@ func Average[T constraints.Integer](it Iterator[T]) float64 {
 	var result float64
 	ForEach(func(item Pair[int, T]) {
 		result += (float64(item.Second) - result) / float64(item.First+1)
-	}, Index(it))
+	}, Enumerate(it))
 	return result
 }
 
@@ -63,7 +63,7 @@ func Max[T constraints.Integer](it Iterator[T]) T {
 		} else if result < item.Second {
 			result = item.Second
 		}
-	}, Index(it))
+	}, Enumerate(it))
 	return result
 }
 
@@ -76,7 +76,7 @@ func Min[T constraints.Integer](it Iterator[T]) T {
 		} else if result > item.Second {
 			result = item.Second
 		}
-	}, Index(it))
+	}, Enumerate(it))
 	return result
 }
 

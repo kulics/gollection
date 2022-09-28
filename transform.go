@@ -1,16 +1,16 @@
 package gollection
 
 // Add subscripts to the incoming iterators.
-func Index[T any](it Iterator[T]) Iterator[Pair[int, T]] {
-	return &indexerStream[T]{-1, it}
+func Enumerate[T any](it Iterator[T]) Iterator[Pair[int, T]] {
+	return &enumerateStream[T]{-1, it}
 }
 
-type indexerStream[T any] struct {
+type enumerateStream[T any] struct {
 	index    int
 	iterator Iterator[T]
 }
 
-func (a *indexerStream[T]) Next() Option[Pair[int, T]] {
+func (a *enumerateStream[T]) Next() Option[Pair[int, T]] {
 	if v, ok := a.iterator.Next().Get(); ok {
 		a.index++
 		return Some(PairOf(a.index, v))
