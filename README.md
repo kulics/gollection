@@ -2,8 +2,6 @@
 
 A generic generic collection library based on go's generic implementation.
 
-> This library relies on the generic features of go 1.18 and is not yet stable, we will make the api stable after 1.18.
-
 ## Core Interfaces
 
 ```go
