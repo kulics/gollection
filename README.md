@@ -65,7 +65,7 @@ A series of conversion functions are provided to process one Iterable conversion
 ```go
 func Enumerate[T any](it Iterator[T]) Iterator[Pair[int, T]]
 func Map[T any, R any](transform func(T) R, it Iterator[T]) Iterator[R]
-func Filter[T any](predecate func(T) bool, it Iterator[T]) Iterator[T]
+func Filter[T any](predicate func(T) bool, it Iterator[T]) Iterator[T]
 func Limit[T any](count int, it Iterator[T]) Iterator[T]
 func Skip[T any](count int, it Iterator[T]) Iterator[T]
 func Step[T any](count int, it Iterator[T]) Iterator[T]

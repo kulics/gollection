@@ -35,19 +35,19 @@ func (a *mapStream[T, R]) Next() Option[R] {
 	return None[R]()
 }
 
-// Use predecate to filter an iterator to another iterator。
-func Filter[T any](predecate func(T) bool, it Iterator[T]) Iterator[T] {
-	return &filterStream[T]{predecate, it}
+// Use predicate to filter an iterator to another iterator。
+func Filter[T any](predicate func(T) bool, it Iterator[T]) Iterator[T] {
+	return &filterStream[T]{predicate, it}
 }
 
 type filterStream[T any] struct {
-	predecate func(T) bool
+	predicate func(T) bool
 	iterator  Iterator[T]
 }
 
 func (a *filterStream[T]) Next() Option[T] {
 	for v, ok := a.iterator.Next().Get(); ok; v, ok = a.iterator.Next().Get() {
-		if a.predecate(v) {
+		if a.predicate(v) {
 			return Some(v)
 		}
 	}
