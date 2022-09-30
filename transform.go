@@ -56,66 +56,60 @@ func (a *filterStream[T]) Next() Option[T] {
 
 // Convert an iterator to another iterator that limits the maximum number of iterations.
 func Limit[T any](count int, it Iterator[T]) Iterator[T] {
-	return &limitStream[T]{count, 0, it}
+	return &limitStream[T]{count, it}
 }
 
 type limitStream[T any] struct {
 	limit    int
-	index    int
 	iterator Iterator[T]
 }
 
 func (a *limitStream[T]) Next() Option[T] {
-	if v, ok := a.iterator.Next().Get(); ok && a.index < a.limit {
-		a.index++
-		return Some(v)
+	if a.limit != 0 {
+		a.limit -= 1
+		return a.iterator.Next()
 	}
 	return None[T]()
 }
 
 // Converts an iterator to another iterator that skips a specified number of times.
 func Skip[T any](count int, it Iterator[T]) Iterator[T] {
-	return &skipStream[T]{count, 0, it}
+	return &skipStream[T]{count, it}
 }
 
 type skipStream[T any] struct {
 	skip     int
-	index    int
 	iterator Iterator[T]
 }
 
 func (a *skipStream[T]) Next() Option[T] {
-	for v, ok := a.iterator.Next().Get(); ok; v, ok = a.iterator.Next().Get() {
-		if a.index < a.skip {
-			a.index++
-			continue
+	for a.skip > 0 {
+		if a.iterator.Next().IsNone() {
+			return None[T]()
 		}
-		return Some(v)
+		a.skip -= 1
 	}
-	return None[T]()
+	return a.iterator.Next()
 }
 
 // Converts an iterator to another iterator that skips a specified number of times each time.
 func Step[T any](count int, it Iterator[T]) Iterator[T] {
-	return &stepStream[T]{count, count, it}
+	return &stepStream[T]{count - 1, true, it}
 }
 
 type stepStream[T any] struct {
-	step     int
-	index    int
-	iterator Iterator[T]
+	step      int
+	firstTake bool
+	iterator  Iterator[T]
 }
 
 func (a *stepStream[T]) Next() Option[T] {
-	for v, ok := a.iterator.Next().Get(); ok; v, ok = a.iterator.Next().Get() {
-		if a.index < a.step {
-			a.index++
-			continue
-		}
-		a.index = 1
-		return Some(v)
+	if a.firstTake {
+		a.firstTake = false
+		return a.iterator.Next()
+	} else {
+		return At(a.step, a.iterator)
 	}
-	return None[T]()
 }
 
 // By connecting two iterators in series,
@@ -139,4 +133,47 @@ func (a *concatStream[T]) Next() Option[T] {
 		return a.Next()
 	}
 	return a.last.Next()
+}
+
+func Flatten[T Iterable[U], U any](it Iterator[T]) Iterator[U] {
+	return &flattenStream[T, U]{it, None[Iterator[U]]()}
+}
+
+type flattenStream[T Iterable[U], U any] struct {
+	iterator Iterator[T]
+	subIter  Option[Iterator[U]]
+}
+
+func (a *flattenStream[T, U]) Next() Option[U] {
+	if iter, ok := a.subIter.Get(); ok {
+		if item, ok := iter.Next().Get(); ok {
+			return Some(item)
+		} else {
+			a.subIter = None[Iterator[U]]()
+			return a.Next()
+		}
+	} else if nextIter, ok := a.iterator.Next().Get(); ok {
+		a.subIter = Some(nextIter.Iter())
+		return a.Next()
+	} else {
+		return None[U]()
+	}
+}
+
+func Zip[T any, U any](left Iterator[T], right Iterator[U]) Iterator[Pair[T, U]] {
+	return &zipStream[T, U]{left, right}
+}
+
+type zipStream[T any, U any] struct {
+	first Iterator[T]
+	last  Iterator[U]
+}
+
+func (a *zipStream[T, U]) Next() Option[Pair[T, U]] {
+	if v1, ok1 := a.first.Next().Get(); ok1 {
+		if v2, ok2 := a.last.Next().Get(); ok2 {
+			return Some(PairOf(v1, v2))
+		}
+	}
+	return None[Pair[T, U]]()
 }

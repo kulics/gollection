@@ -282,3 +282,11 @@ func (a *arrayListIterator[T]) Next() Option[T] {
 	}
 	return None[T]()
 }
+
+func CollectToArrayList[T any](it Iterator[T]) ArrayList[T] {
+	var r = ArrayListOf[T]()
+	for v, ok := it.Next().Get(); ok; v, ok = it.Next().Get() {
+		r.Append(v)
+	}
+	return r
+}

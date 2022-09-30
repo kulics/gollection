@@ -380,3 +380,11 @@ func (a *linkedListIterator[T]) Next() Option[T] {
 	}
 	return None[T]()
 }
+
+func CollectToLinkedList[T any](it Iterator[T]) LinkedList[T] {
+	var r = LinkedListOf[T]()
+	for v, ok := it.Next().Get(); ok; v, ok = it.Next().Get() {
+		r.Append(v)
+	}
+	return r
+}

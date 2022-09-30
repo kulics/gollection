@@ -70,6 +70,8 @@ func Limit[T any](count int, it Iterator[T]) Iterator[T]
 func Skip[T any](count int, it Iterator[T]) Iterator[T]
 func Step[T any](count int, it Iterator[T]) Iterator[T]
 func Concat[T any](left Iterator[T], right Iterator[T]) Iterator[T]
+func Flatten[T Iterable[U], U any](it Iterator[T]) Iterator[U]
+func Zip[T any, U any](left Iterator[T], right Iterator[U]) Iterator[Pair[T, U]]
 ```
 
 ### Terminal Iterable
@@ -78,12 +80,14 @@ A set of functions that evaluate the Iterable and are executed immediately.
 
 ```go
 func Contains[T comparable](target T, it Iterator[T]) bool
-func Sum[T Number](it Iterator[T]) T
-func Product[T Number](it Iterator[T]) T
-func Average[T Number](it Iterator[T]) float64
+func Sum[T Integer | Float](it Iterator[T]) T
+func Product[T Integer | Float](it Iterator[T]) T
+func Average[T Integer | Float](it Iterator[T]) float64
 func Count[T any](it Iterator[T]) int
-func Max[T Number](it Iterator[T]) T
-func Min[T Number](it Iterator[T]) T
+func Max[T Ordered](it Iterator[T]) Option[T]
+func Min[T Ordered](it Iterator[T]) Option[T]
+func MaxBy[T any](greater func(T, T) bool, it Iterator[T]) Option[T]
+func MinBy[T any](less func(T, T) bool, it Iterator[T]) Option[T]
 func ForEach[T any](action func(T), it Iterator[T])
 func AllMatch[T any](predicate func(T) bool, it Iterator[T]) bool
 func NoneMatch[T any](predicate func(T) bool, it Iterator[T]) bool
@@ -91,8 +95,10 @@ func AnyMatch[T any](predicate func(T) bool, it Iterator[T]) bool
 func First[T any](it Iterator[T]) Option[T]
 func Last[T any](it Iterator[T]) Option[T]
 func At[T any](index int, it Iterator[T]) Option[T]
-func Reduce[T any, R any](initial R, operation func(R, T) R, it Iterator[T]) R
+func Reduce[T any](operation func(T, T) T, it Iterator[T]) Option[T]
 func Fold[T any, R any](initial R, operation func(T, R) R, it Iterator[T]) R
+func Unzip[A any, B any](it Iterator[Pair[A, B]]) Pair[ArrayList[A], ArrayList[B]]
+func Collect[T any, S any, R any](collector Collector[S, T, R], it Iterator[T]) R
 ```
 
 ## ToString and ToSlice

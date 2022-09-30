@@ -161,49 +161,6 @@ func (a HashMap[K, V]) PutAll(elements Collection[Pair[K, V]]) {
 	}
 }
 
-func (a HashMap[K, V]) Update(key K, update func(oldValue Option[V]) V) V {
-	var hash = a.inner.hash(key)
-	var index = a.index(hash)
-	for i := a.inner.buckets[index]; i >= 0; i = a.inner.entries[i].next {
-		var item = a.inner.entries[i]
-		if item.hash == hash && item.key == key {
-			var newValue = update(Some(item.value))
-			var newItem = entry[K, V]{
-				hash:  item.hash,
-				key:   item.key,
-				value: newValue,
-				next:  item.next,
-				alive: item.alive,
-			}
-			a.inner.entries[i] = newItem
-			return newValue
-		}
-	}
-	var bucket int
-	if a.inner.freeLength > 0 {
-		bucket = a.inner.freeCount
-		a.inner.freeCount = a.inner.entries[a.inner.freeCount].next
-		a.inner.freeLength--
-	} else {
-		if a.grow(a.Length() + 1) {
-			index = a.index(hash)
-		}
-		bucket = a.inner.appendCount
-		a.inner.appendCount++
-	}
-	var newValue = update(None[V]())
-	var newItem = entry[K, V]{
-		hash:  hash,
-		key:   key,
-		value: newValue,
-		next:  a.inner.buckets[index],
-		alive: true,
-	}
-	a.inner.entries[bucket] = newItem
-	a.inner.buckets[index] = bucket
-	return newValue
-}
-
 func (a HashMap[K, V]) TryGet(key K) Option[V] {
 	var hash = a.inner.hash(key)
 	var index = a.index(hash)
@@ -347,4 +304,12 @@ func (a *hashMapIterator[K, V]) Next() Option[Pair[K, V]] {
 		}
 	}
 	return None[Pair[K, V]]()
+}
+
+func CollectToHashMap[K comparable, V any](it Iterator[Pair[K, V]]) HashMap[K, V] {
+	var r = HashMapOf[K, V]()
+	for v, ok := it.Next().Get(); ok; v, ok = it.Next().Get() {
+		r.Put(v.First, v.Second)
+	}
+	return r
 }

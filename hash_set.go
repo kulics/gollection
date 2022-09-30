@@ -98,3 +98,11 @@ func (a *hashSetIterator[T]) Next() Option[T] {
 	}
 	return None[T]()
 }
+
+func CollectToHashSet[T comparable](it Iterator[T]) HashSet[T] {
+	var r = HashSetOf[T]()
+	for v, ok := it.Next().Get(); ok; v, ok = it.Next().Get() {
+		r.Put(v)
+	}
+	return r
+}

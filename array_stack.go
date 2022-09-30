@@ -164,3 +164,11 @@ func (a *arrayStackIterator[T]) Next() Option[T] {
 func (a *arrayStackIterator[T]) Iter() Iterator[T] {
 	return a
 }
+
+func CollectToArrayStack[T any](it Iterator[T]) ArrayStack[T] {
+	var r = ArrayStackOf[T]()
+	for v, ok := it.Next().Get(); ok; v, ok = it.Next().Get() {
+		r.Push(v)
+	}
+	return r
+}

@@ -21,10 +21,10 @@ func TestTerminal(t *testing.T) {
 	if Count(datas.Iter()) != 5 {
 		t.Fatal("Count error")
 	}
-	if Max(datas.Iter()) != 5 {
+	if Max(datas.Iter()).value != 5 {
 		t.Fatal("Max error")
 	}
-	if Min(datas.Iter()) != 1 {
+	if Min(datas.Iter()).value != 1 {
 		t.Fatal("Min error")
 	}
 	var sum int
@@ -56,9 +56,9 @@ func TestTerminal(t *testing.T) {
 	if At(2, datas.Iter()).OrPanic() != 3 {
 		t.Fatal("At error")
 	}
-	if Reduce(0, func(r int, t int) int {
+	if Reduce(func(r int, t int) int {
 		return r + t
-	}, datas.Iter()) != 15 {
+	}, datas.Iter()).value != 15 {
 		t.Fatal("Reduce error")
 	}
 	if Fold(0, func(r int, t int) int {

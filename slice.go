@@ -43,3 +43,11 @@ func (a *sliceIterator[T]) Next() Option[T] {
 	}
 	return None[T]()
 }
+
+func CollectToSlice[T any](it Iterator[T]) []T {
+	var r = make([]T, 0)
+	for v, ok := it.Next().Get(); ok; v, ok = it.Next().Get() {
+		r = append(r, v)
+	}
+	return r
+}

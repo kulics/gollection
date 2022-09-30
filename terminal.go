@@ -13,71 +13,75 @@ func Contains[T comparable](target T, it Iterator[T]) bool {
 }
 
 // Returns the sum of all the elements in the iterator.
-func Sum[T constraints.Integer](it Iterator[T]) T {
-	var result T
-	ForEach(func(item Pair[int, T]) {
-		if item.First == 0 {
-			result = item.Second
-		} else {
-			result += item.Second
-		}
-	}, Enumerate(it))
-	return result
+func Sum[T constraints.Integer | constraints.Float](it Iterator[T]) T {
+	return Fold(0, func(a, b T) T {
+		return a + b
+	}, it)
 }
 
 // Returns the product of all the elements in the iterator.
-func Product[T constraints.Integer](it Iterator[T]) T {
-	var result T
-	ForEach(func(item Pair[int, T]) {
-		if item.First == 0 {
-			result = item.Second
-		} else {
-			result *= item.Second
-		}
-	}, Enumerate(it))
-	return result
+func Product[T constraints.Integer | constraints.Float](it Iterator[T]) T {
+	return Fold(1, func(a, b T) T {
+		return a * b
+	}, it)
 }
 
 // Returns the average of all the elements in the iterator.
-func Average[T constraints.Integer](it Iterator[T]) float64 {
-	var result float64
-	ForEach(func(item Pair[int, T]) {
-		result += (float64(item.Second) - result) / float64(item.First+1)
+func Average[T constraints.Integer | constraints.Float](it Iterator[T]) float64 {
+	return Fold(0.0, func(result float64, item Pair[int, T]) float64 {
+		return result + (float64(item.Second)-result)/float64(item.First+1)
 	}, Enumerate(it))
-	return result
 }
 
 // Return the total number of iterators.
 func Count[T any](it Iterator[T]) int {
-	var result int
-	ForEach(func(item T) { result++ }, it)
-	return result
+	return Fold(0, func(v int, _ T) int {
+		return v + 1
+	}, it)
 }
 
 // Return the maximum value of all elements of the iterator.
-func Max[T constraints.Integer](it Iterator[T]) T {
-	var result T
-	ForEach(func(item Pair[int, T]) {
-		if item.First == 0 {
-			result = item.Second
-		} else if result < item.Second {
-			result = item.Second
+func Max[T constraints.Ordered](it Iterator[T]) Option[T] {
+	return Reduce(func(a T, b T) T {
+		if a > b {
+			return a
+		} else {
+			return b
 		}
-	}, Enumerate(it))
-	return result
+	}, it)
+}
+
+// Return the maximum value of all elements of the iterator.
+func MaxBy[T any](greater func(T, T) bool, it Iterator[T]) Option[T] {
+	return Reduce(func(a T, b T) T {
+		if greater(a, b) {
+			return a
+		} else {
+			return b
+		}
+	}, it)
 }
 
 // Return the minimum value of all elements of the iterator.
-func Min[T constraints.Integer](it Iterator[T]) T {
-	var result T
-	ForEach(func(item Pair[int, T]) {
-		if item.First == 0 {
-			result = item.Second
-		} else if result > item.Second {
-			result = item.Second
+func Min[T constraints.Ordered](it Iterator[T]) Option[T] {
+	return Reduce(func(a T, b T) T {
+		if a < b {
+			return a
+		} else {
+			return b
 		}
-	}, Enumerate(it))
-	return result
+	}, it)
+}
+
+// Return the minimum value of all elements of the iterator.
+func MinBy[T any](less func(T, T) bool, it Iterator[T]) Option[T] {
+	return Reduce(func(a T, b T) T {
+		if less(a, b) {
+			return a
+		} else {
+			return b
+		}
+	}, it)
 }
 
 // The action is executed for each element of the iterator, and the argument to the action is the element.
@@ -124,13 +128,9 @@ func First[T any](it Iterator[T]) Option[T] {
 
 // Return the last element.
 func Last[T any](it Iterator[T]) Option[T] {
-	var curr = it.Next()
-	var last = curr
-	for curr.IsSome() {
-		last = curr
-		curr = it.Next()
-	}
-	return last
+	return Fold(None[T](), func(_ Option[T], next T) Option[T] {
+		return Some(next)
+	}, it)
 }
 
 // Return the element at index.
@@ -145,7 +145,15 @@ func At[T any](index int, it Iterator[T]) Option[T] {
 }
 
 // Return the value of the final composite, operates on the iterator from front to back.
-func Reduce[T any, R any](initial R, operation func(R, T) R, it Iterator[T]) R {
+func Reduce[T any](operation func(T, T) T, it Iterator[T]) Option[T] {
+	if v, ok := it.Next().Get(); ok {
+		return Some(Fold(v, operation, it))
+	}
+	return None[T]()
+}
+
+// Return the value of the final composite, operates on the iterator from back to front.
+func Fold[T any, R any](initial R, operation func(R, T) R, it Iterator[T]) R {
 	var result = initial
 	for v, ok := it.Next().Get(); ok; v, ok = it.Next().Get() {
 		result = operation(result, v)
@@ -153,15 +161,35 @@ func Reduce[T any, R any](initial R, operation func(R, T) R, it Iterator[T]) R {
 	return result
 }
 
-// Return the value of the final composite, operates on the iterator from back to front.
-func Fold[T any, R any](initial R, operation func(T, R) R, it Iterator[T]) R {
-	var reverse = make([]T, 0)
+func Unzip[A any, B any](it Iterator[Pair[A, B]]) Pair[ArrayList[A], ArrayList[B]] {
+	var arrA = ArrayListOf[A]()
+	var arrB = ArrayListOf[B]()
 	for v, ok := it.Next().Get(); ok; v, ok = it.Next().Get() {
-		reverse = append(reverse, v)
+		var a, b = v.Get()
+		arrA.Append(a)
+		arrB.Append(b)
 	}
-	var result = initial
-	for i := len(reverse) - 1; i >= 0; i-- {
-		result = operation(reverse[i], result)
+	return PairOf(arrA, arrB)
+}
+
+type Collector[S any, T any, R any] interface {
+	Supply() S
+	Accumulate(supplier S, element T)
+	Finish(supplier S) R
+}
+
+func Collect[T any, S any, R any](collector Collector[S, T, R], it Iterator[T]) R {
+	var s = collector.Supply()
+	for v, ok := it.Next().Get(); ok; v, ok = it.Next().Get() {
+		collector.Accumulate(s, v)
 	}
-	return result
+	return collector.Finish(s)
+}
+
+func CollectToMap[K comparable, V any](it Iterator[Pair[K, V]]) map[K]V {
+	var r = make(map[K]V, 0)
+	for v, ok := it.Next().Get(); ok; v, ok = it.Next().Get() {
+		r[v.First] = v.Second
+	}
+	return r
 }

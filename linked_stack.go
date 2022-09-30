@@ -110,3 +110,11 @@ func (a *linkedStackIterator[T]) Next() Option[T] {
 	}
 	return None[T]()
 }
+
+func CollectToLinkedStack[T any](it Iterator[T]) LinkedStack[T] {
+	var r = LinkedStackOf[T]()
+	for v, ok := it.Next().Get(); ok; v, ok = it.Next().Get() {
+		r.Push(v)
+	}
+	return r
+}
