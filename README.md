@@ -193,11 +193,9 @@ type AnyMutableMap[K any, V any] interface {
 	AnyMap[K, V]
 
 	Put(key K, value V) Option[V]
-	PutAll(elements Collection[Pair[K, V]]) bool
+	PutAll(elements Collection[Pair[K, V]])
 
 	Remove(key K) Option[V]
-	RemoveWhere(predicate func(K, V) bool)
-	RemoveAll(elements Collection[K]) bool
 
 	Clear()
 }
@@ -219,13 +217,9 @@ type AnyMutableSet[T any] interface {
 	AnySet[T]
 
 	Put(element T) bool
-	PutAll(elements Collection[T]) bool
+	PutAll(elements Collection[T])
 
 	Remove(element T) bool
-	RemoveWhere(predicate func(T) bool)
-	RemoveAll(elements Collection[T]) bool
-
-	RetainAll(elements Collection[T]) bool
 
 	Clear()
 }

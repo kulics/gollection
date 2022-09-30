@@ -172,20 +172,6 @@ func (a ArrayList[T]) Set(index int, newElement T) T {
 	panic(OutOfBounds)
 }
 
-func (a ArrayList[T]) Update(index int, update func(oldElement T) T) T {
-	if a.isOutOfBounds(index) {
-		panic(OutOfBounds)
-	}
-	a.inner.elements[index] = update(a.inner.elements[index])
-	return a.inner.elements[index]
-}
-
-func (a ArrayList[T]) UpdateAll(update func(oldElement T) T) {
-	for i, v := range a.inner.elements {
-		a.inner.elements[i] = update(v)
-	}
-}
-
 // Return the element at the index.
 // Return None when a subscript is out of bounds.
 func (a ArrayList[T]) TryGet(index int) Option[T] {

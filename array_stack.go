@@ -35,7 +35,7 @@ type arrayStack[T any] struct {
 }
 
 // Return the number of elements of stack.
-func (a ArrayStack[T]) Length() int {
+func (a ArrayStack[T]) Count() int {
 	return a.inner.length
 }
 
@@ -96,12 +96,12 @@ func (a ArrayStack[T]) TryPeek() Option[T] {
 
 // Return the Iterator of stack.
 func (a ArrayStack[T]) Iter() Iterator[T] {
-	return &arrayStackIterator[T]{a.Length(), a}
+	return &arrayStackIterator[T]{a.Count(), a}
 }
 
 // Return a new built-in slice that copies all elements.
 func (a ArrayStack[T]) ToSlice() []T {
-	var arr = make([]T, a.Length())
+	var arr = make([]T, a.Count())
 	copy(arr, a.inner.elements)
 	return arr
 }

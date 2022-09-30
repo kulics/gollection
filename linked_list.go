@@ -182,23 +182,6 @@ func (a LinkedList[T]) Set(index int, newElement T) T {
 	panic(OutOfBounds)
 }
 
-func (a LinkedList[T]) Update(index int, update func(oldElement T) T) T {
-	if a.isOutOfBounds(index) {
-		panic(OutOfBounds)
-	}
-	var x = a.at(index)
-	x.value = update(x.value)
-	return x.value
-}
-
-func (a LinkedList[T]) UpdateAll(update func(oldElement T) T) {
-	var first = a.inner.first
-	for first == nil {
-		first.value = update(first.value)
-		first = first.next
-	}
-}
-
 func (a LinkedList[T]) TryGet(index int) Option[T] {
 	if a.isOutOfBounds(index) {
 		return None[T]()

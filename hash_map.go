@@ -132,7 +132,7 @@ func (a HashMap[K, V]) Put(key K, value V) Option[V] {
 		a.inner.freeCount = a.inner.entries[a.inner.freeCount].next
 		a.inner.freeLength--
 	} else {
-		if a.grow(a.Length() + 1) {
+		if a.grow(a.Count() + 1) {
 			index = a.index(hash)
 		}
 		bucket = a.inner.appendCount
@@ -152,7 +152,7 @@ func (a HashMap[K, V]) Put(key K, value V) Option[V] {
 
 func (a HashMap[K, V]) PutAll(elements Collection[Pair[K, V]]) {
 	var iter = elements.Iter()
-	if length, addLength := a.Length(), elements.Count(); length < addLength {
+	if length, addLength := a.Count(), elements.Count(); length < addLength {
 		a.grow(addLength)
 	}
 	for item, ok := iter.Next().Get(); ok; item, ok = iter.Next().Get() {
@@ -207,12 +207,12 @@ func (a HashMap[K, V]) Contains(key K) bool {
 	return a.TryGet(key).IsSome()
 }
 
-func (a HashMap[K, V]) Length() int {
+func (a HashMap[K, V]) Count() int {
 	return a.inner.appendCount - a.inner.freeLength
 }
 
 func (a HashMap[K, V]) IsEmpty() bool {
-	return a.Length() == 0
+	return a.Count() == 0
 }
 
 func (a HashMap[K, V]) Clear() {
@@ -229,7 +229,7 @@ func (a HashMap[K, V]) Iter() Iterator[Pair[K, V]] {
 }
 
 func (a HashMap[K, V]) ToSlice() []Pair[K, V] {
-	var arr = make([]Pair[K, V], a.Length())
+	var arr = make([]Pair[K, V], a.Count())
 	ForEach(func(t Pair[K, V]) {
 		arr = append(arr, t)
 	}, a.Iter())

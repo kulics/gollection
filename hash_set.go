@@ -30,8 +30,8 @@ type HashSet[T comparable] struct {
 	inner HashMap[T, Void]
 }
 
-func (a HashSet[T]) Length() int {
-	return a.inner.Length()
+func (a HashSet[T]) Count() int {
+	return a.inner.Count()
 }
 
 func (a HashSet[T]) IsEmpty() bool {
@@ -76,7 +76,7 @@ func (a HashSet[T]) Iter() Iterator[T] {
 }
 
 func (a HashSet[T]) ToSlice() []T {
-	var arr = make([]T, a.Length())
+	var arr = make([]T, a.Count())
 	ForEach(func(t T) {
 		arr = append(arr, t)
 	}, a.Iter())
