@@ -161,6 +161,7 @@ func Fold[T any, R any](initial R, operation func(R, T) R, it Iterator[T]) R {
 	return result
 }
 
+// Splitting an iterator whose elements are pair into two lists.
 func Unzip[A any, B any](it Iterator[Pair[A, B]]) Pair[ArrayList[A], ArrayList[B]] {
 	var arrA = ArrayListOf[A]()
 	var arrB = ArrayListOf[B]()
@@ -178,6 +179,7 @@ type Collector[S any, T any, R any] interface {
 	Finish(supplier S) R
 }
 
+// Collecting via Collector.
 func Collect[T any, S any, R any](collector Collector[S, T, R], it Iterator[T]) R {
 	var s = collector.Supply()
 	for v, ok := it.Next().Get(); ok; v, ok = it.Next().Get() {
@@ -186,6 +188,7 @@ func Collect[T any, S any, R any](collector Collector[S, T, R], it Iterator[T]) 
 	return collector.Finish(s)
 }
 
+// Collect to built-in map.
 func CollectToMap[K comparable, V any](it Iterator[Pair[K, V]]) map[K]V {
 	var r = make(map[K]V, 0)
 	for v, ok := it.Next().Get(); ok; v, ok = it.Next().Get() {

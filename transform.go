@@ -135,6 +135,7 @@ func (a *concatStream[T]) Next() Option[T] {
 	return a.last.Next()
 }
 
+// Converting a nested iterator to a flat iterator.
 func Flatten[T Iterable[U], U any](it Iterator[T]) Iterator[U] {
 	return &flattenStream[T, U]{it, None[Iterator[U]]()}
 }
@@ -160,6 +161,7 @@ func (a *flattenStream[T, U]) Next() Option[U] {
 	}
 }
 
+// Compress two iterators into one iterator. The length is the length of the shortest iterator.
 func Zip[T any, U any](left Iterator[T], right Iterator[U]) Iterator[Pair[T, U]] {
 	return &zipStream[T, U]{left, right}
 }
