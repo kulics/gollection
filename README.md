@@ -133,7 +133,7 @@ type Collection[T any] interface {
 }
 ```
 
-## List
+### List
 
 We provide the `AnyList` interface and `AnyMutableList` interface to unify the description of ordered sequences, and provide `ArrayList` and `LinkedList` as its implementation types.
 
