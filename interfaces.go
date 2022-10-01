@@ -130,7 +130,7 @@ func EqualsList[T comparable](l AnyList[T], r AnyList[T]) bool {
 	return true
 }
 
-func IndexOf[T comparable](li AnyList[T], element T) int {
+func FirstIndexOf[T comparable](li AnyList[T], element T) int {
 	var iter = Enumerate(li.Iter())
 	for v, ok := iter.Next().Get(); ok; v, ok = iter.Next().Get() {
 		if v.Second == element {
