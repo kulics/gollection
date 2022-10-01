@@ -49,8 +49,11 @@ func (a HashSet[T]) PutAll(elements Collection[T]) {
 	}
 }
 
-func (a HashSet[T]) Remove(element T) bool {
-	return a.inner.Remove(element).IsSome()
+func (a HashSet[T]) Remove(element T) Option[T] {
+	if a.inner.Remove(element).IsSome() {
+		Some(element)
+	}
+	return None[T]()
 }
 
 func (a HashSet[T]) Contains(element T) bool {

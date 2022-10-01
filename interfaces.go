@@ -96,7 +96,7 @@ type AnyMutableSet[T any] interface {
 	Put(element T) bool
 	PutAll(elements Collection[T])
 
-	Remove(element T) bool
+	Remove(element T) Option[T]
 
 	Clear()
 }
