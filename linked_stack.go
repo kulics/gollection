@@ -46,6 +46,13 @@ func (a LinkedStack[T]) Push(element T) {
 	a.inner.length++
 }
 
+// Add multiple elements to the top of the stack.
+func (a LinkedStack[T]) PushAll(elements Collection[T]) {
+	ForEach(func(i T) {
+		a.Push(i)
+	}, elements.Iter())
+}
+
 func (a LinkedStack[T]) Pop() T {
 	if v, ok := a.TryPop().Get(); ok {
 		return v

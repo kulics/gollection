@@ -106,6 +106,7 @@ type AnyStack[T any] interface {
 	Collection[T]
 
 	Push(element T)
+	PushAll(elements Collection[T])
 
 	Pop() T
 	TryPop() Option[T]

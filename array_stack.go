@@ -53,6 +53,20 @@ func (a ArrayStack[T]) Push(element T) {
 	a.inner.length++
 }
 
+// Add multiple elements to the top of the stack.
+func (a ArrayStack[T]) PushAll(elements Collection[T]) {
+	var additional = elements.Count()
+	if growLength := a.inner.length + additional; len(a.inner.elements) < growLength {
+		a.grow(growLength)
+	}
+	var i = a.inner.length
+	ForEach(func(item T) {
+		a.inner.elements[i] = item
+		a.inner.length++
+		i++
+	}, elements.Iter())
+}
+
 // Remove an element from the top of the stack.
 // A panic is raised when the stack is empty.
 func (a ArrayStack[T]) Pop() T {
@@ -159,10 +173,6 @@ func (a *arrayStackIterator[T]) Next() Option[T] {
 		return Some(a.source.inner.elements[a.index])
 	}
 	return None[T]()
-}
-
-func (a *arrayStackIterator[T]) Iter() Iterator[T] {
-	return a
 }
 
 func CollectToArrayStack[T any](it Iterator[T]) ArrayStack[T] {
