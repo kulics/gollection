@@ -219,7 +219,7 @@ type AnyMutableSet[T any] interface {
 	Put(element T) bool
 	PutAll(elements Collection[T])
 
-	Remove(element T) bool
+	Remove(element T) Option[T]
 
 	Clear()
 }
@@ -234,6 +234,7 @@ type AnyStack[T any] interface {
 	Collection[T]
 
 	Push(element T)
+	PushAll(elements Collection[T])
 
 	Pop() T
 	TryPop() Option[T]
