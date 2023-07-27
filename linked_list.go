@@ -1,25 +1,20 @@
 package gollection
 
-func LinkedListOf[T any](elements ...T) LinkedList[T] {
-	var inner = &linkedList[T]{0, nil, nil}
-	var list = LinkedList[T]{inner}
+func LinkedListOf[T any](elements ...T) *LinkedList[T] {
+	var list = &LinkedList[T]{0, nil, nil}
 	for _, v := range elements {
 		list.Append(v)
 	}
 	return list
 }
 
-func LinkedListFrom[T any](collection Collection[T]) LinkedList[T] {
+func LinkedListFrom[T any](collection Collection[T]) *LinkedList[T] {
 	var list = LinkedListOf[T]()
 	list.AppendAll(collection)
 	return list
 }
 
 type LinkedList[T any] struct {
-	inner *linkedList[T]
-}
-
-type linkedList[T any] struct {
 	length int
 	first  *twoWayNode[T]
 	last   *twoWayNode[T]
@@ -31,72 +26,72 @@ type twoWayNode[T any] struct {
 	prev  *twoWayNode[T]
 }
 
-func (a LinkedList[T]) LastIndex() int {
-	return a.inner.length - 1
+func (a *LinkedList[T]) LastIndex() int {
+	return a.length - 1
 }
 
-func (a LinkedList[T]) GetFirst() T {
+func (a *LinkedList[T]) GetFirst() T {
 	if v, ok := a.TryGetFirst().Get(); ok {
 		return v
 	}
 	panic(OutOfBounds)
 }
 
-func (a LinkedList[T]) TryGetFirst() Option[T] {
-	if first := a.inner.first; first != nil {
+func (a *LinkedList[T]) TryGetFirst() Option[T] {
+	if first := a.first; first != nil {
 		return Some(first.value)
 	}
 	return None[T]()
 }
 
-func (a LinkedList[T]) RemoveFirst() T {
-	var first = a.inner.first
+func (a *LinkedList[T]) RemoveFirst() T {
+	var first = a.first
 	if first == nil {
 		panic(OutOfBounds)
 	}
 	return a.unlinkFirst(first)
 }
 
-func (a LinkedList[T]) GetLast() T {
+func (a *LinkedList[T]) GetLast() T {
 	if v, ok := a.TryGetLast().Get(); ok {
 		return v
 	}
 	panic(OutOfBounds)
 }
 
-func (a LinkedList[T]) TryGetLast() Option[T] {
-	if last := a.inner.last; last != nil {
+func (a *LinkedList[T]) TryGetLast() Option[T] {
+	if last := a.last; last != nil {
 		return Some(last.value)
 	}
 	return None[T]()
 }
 
-func (a LinkedList[T]) RemoveLast() T {
-	var last = a.inner.last
+func (a *LinkedList[T]) RemoveLast() T {
+	var last = a.last
 	if last == nil {
 		panic(OutOfBounds)
 	}
 	return a.unlinkLast(last)
 }
 
-func (a LinkedList[T]) Prepend(element T) {
+func (a *LinkedList[T]) Prepend(element T) {
 	a.linkFirst(element)
 }
 
-func (a LinkedList[T]) PrependAll(elements Collection[T]) {
+func (a *LinkedList[T]) PrependAll(elements Collection[T]) {
 	a.InsertAll(0, elements)
 }
 
-func (a LinkedList[T]) Append(element T) {
+func (a *LinkedList[T]) Append(element T) {
 	a.linkLast(element)
 }
 
-func (a LinkedList[T]) AppendAll(elements Collection[T]) {
-	a.InsertAll(a.inner.length, elements)
+func (a *LinkedList[T]) AppendAll(elements Collection[T]) {
+	a.InsertAll(a.length, elements)
 }
 
-func (a LinkedList[T]) Insert(index int, element T) {
-	if index < 0 || index > a.inner.length {
+func (a *LinkedList[T]) Insert(index int, element T) {
+	if index < 0 || index > a.length {
 		panic(OutOfBounds)
 	}
 	if index == 0 {
@@ -106,8 +101,8 @@ func (a LinkedList[T]) Insert(index int, element T) {
 	}
 }
 
-func (a LinkedList[T]) InsertAll(index int, elements Collection[T]) {
-	if index < 0 || index > a.inner.length {
+func (a *LinkedList[T]) InsertAll(index int, elements Collection[T]) {
+	if index < 0 || index > a.length {
 		panic(OutOfBounds)
 	}
 	var length = elements.Count()
@@ -115,9 +110,9 @@ func (a LinkedList[T]) InsertAll(index int, elements Collection[T]) {
 		return
 	}
 	var pred, succ *twoWayNode[T]
-	if index == a.inner.length {
+	if index == a.length {
 		succ = nil
-		pred = a.inner.last
+		pred = a.last
 	} else {
 		succ = a.at(index)
 		pred = succ.prev
@@ -126,29 +121,29 @@ func (a LinkedList[T]) InsertAll(index int, elements Collection[T]) {
 	for v, ok := iter.Next().Get(); ok; v, ok = iter.Next().Get() {
 		var newNode = &twoWayNode[T]{value: v, prev: pred, next: nil}
 		if pred == nil {
-			a.inner.first = newNode
+			a.first = newNode
 		} else {
 			pred.next = newNode
 		}
 		pred = newNode
 	}
 	if succ == nil {
-		a.inner.last = pred
+		a.last = pred
 	} else {
 		pred.next = succ
 		succ.prev = pred
 	}
-	a.inner.length += length
+	a.length += length
 }
 
-func (a LinkedList[T]) RemoveAt(index int) T {
+func (a *LinkedList[T]) RemoveAt(index int) T {
 	if a.isOutOfBounds(index) {
 		panic(OutOfBounds)
 	}
 	return a.unlink(a.at(index))
 }
 
-func (a LinkedList[T]) RemoveRange(at Range[int]) {
+func (a *LinkedList[T]) RemoveRange(at Range[int]) {
 	var begin, end = at.Get()
 	if a.isOutOfBounds(begin) || a.isOutOfBounds(end) {
 		panic(OutOfBounds)
@@ -165,31 +160,31 @@ func (a LinkedList[T]) RemoveRange(at Range[int]) {
 	}
 	first.next = last
 	last.prev = first
-	a.inner.length -= end - begin
+	a.length -= end - begin
 }
 
-func (a LinkedList[T]) Get(index int) T {
+func (a *LinkedList[T]) Get(index int) T {
 	if v, ok := a.TryGet(index).Get(); ok {
 		return v
 	}
 	panic(OutOfBounds)
 }
 
-func (a LinkedList[T]) Set(index int, newElement T) T {
+func (a *LinkedList[T]) Set(index int, newElement T) T {
 	if v, ok := a.TrySet(index, newElement).Get(); ok {
 		return v
 	}
 	panic(OutOfBounds)
 }
 
-func (a LinkedList[T]) TryGet(index int) Option[T] {
+func (a *LinkedList[T]) TryGet(index int) Option[T] {
 	if a.isOutOfBounds(index) {
 		return None[T]()
 	}
 	return Some(a.at(index).value)
 }
 
-func (a LinkedList[T]) TrySet(index int, newElement T) Option[T] {
+func (a *LinkedList[T]) TrySet(index int, newElement T) Option[T] {
 	if a.isOutOfBounds(index) {
 		return None[T]()
 	}
@@ -199,8 +194,8 @@ func (a LinkedList[T]) TrySet(index int, newElement T) Option[T] {
 	return Some(oldValue)
 }
 
-func (a LinkedList[T]) Clear() {
-	for x := a.inner.first; x != nil; {
+func (a *LinkedList[T]) Clear() {
+	for x := a.first; x != nil; {
 		var next = x.next
 		var empty T
 		x.value = empty
@@ -208,24 +203,24 @@ func (a LinkedList[T]) Clear() {
 		x.prev = nil
 		x = next
 	}
-	a.inner.first = nil
-	a.inner.last = nil
-	a.inner.length = 0
+	a.first = nil
+	a.last = nil
+	a.length = 0
 }
 
-func (a LinkedList[T]) Count() int {
-	return a.inner.length
+func (a *LinkedList[T]) Count() int {
+	return a.length
 }
 
-func (a LinkedList[T]) IsEmpty() bool {
-	return a.inner.length == 0
+func (a *LinkedList[T]) IsEmpty() bool {
+	return a.length == 0
 }
 
-func (a LinkedList[T]) Iter() Iterator[T] {
-	return &linkedListIterator[T]{a.inner.first}
+func (a *LinkedList[T]) Iter() Iterator[T] {
+	return &linkedListIterator[T]{a.first}
 }
 
-func (a LinkedList[T]) ToSlice() []T {
+func (a *LinkedList[T]) ToSlice() []T {
 	var arr = make([]T, a.Count())
 	ForEach(func(t T) {
 		arr = append(arr, t)
@@ -233,121 +228,121 @@ func (a LinkedList[T]) ToSlice() []T {
 	return arr
 }
 
-func (a LinkedList[T]) Clone() LinkedList[T] {
+func (a *LinkedList[T]) Clone() *LinkedList[T] {
 	return LinkedListFrom[T](a)
 }
 
-func (a LinkedList[T]) isOutOfBounds(index int) bool {
-	if index < 0 || index >= a.inner.length {
+func (a *LinkedList[T]) isOutOfBounds(index int) bool {
+	if index < 0 || index >= a.length {
 		return true
 	}
 	return false
 }
 
-func (a LinkedList[T]) at(index int) *twoWayNode[T] {
-	if index < (a.inner.length >> 1) {
-		var x = a.inner.first
+func (a *LinkedList[T]) at(index int) *twoWayNode[T] {
+	if index < (a.length >> 1) {
+		var x = a.first
 		for i := 0; i < index; i++ {
 			x = x.next
 		}
 		return x
 	} else {
-		var x = a.inner.last
-		for i := a.inner.length - 1; i > index; i-- {
+		var x = a.last
+		for i := a.length - 1; i > index; i-- {
 			x = x.prev
 		}
 		return x
 	}
 }
 
-func (a LinkedList[T]) linkFirst(element T) {
-	var first = a.inner.first
+func (a *LinkedList[T]) linkFirst(element T) {
+	var first = a.first
 	var newNode = &twoWayNode[T]{value: element, prev: nil, next: first}
-	a.inner.first = newNode
+	a.first = newNode
 	if first == nil {
-		a.inner.last = newNode
+		a.last = newNode
 	} else {
 		first.prev = newNode
 	}
-	a.inner.length++
+	a.length++
 }
 
-func (a LinkedList[T]) linkLast(element T) {
-	var last = a.inner.last
+func (a *LinkedList[T]) linkLast(element T) {
+	var last = a.last
 	var newNode = &twoWayNode[T]{value: element, next: nil, prev: last}
-	a.inner.last = newNode
+	a.last = newNode
 	if last == nil {
-		a.inner.first = newNode
+		a.first = newNode
 	} else {
 		last.next = newNode
 	}
-	a.inner.length++
+	a.length++
 }
 
-func (a LinkedList[T]) linkBefore(element T, succ *twoWayNode[T]) {
+func (a *LinkedList[T]) linkBefore(element T, succ *twoWayNode[T]) {
 	var pred = succ.prev
 	var newNode = &twoWayNode[T]{value: element, prev: pred, next: succ}
 	succ.prev = newNode
 	if pred == nil {
-		a.inner.first = newNode
+		a.first = newNode
 	} else {
 		pred.next = newNode
 	}
-	a.inner.length++
+	a.length++
 }
 
-func (a LinkedList[T]) unlink(x *twoWayNode[T]) T {
+func (a *LinkedList[T]) unlink(x *twoWayNode[T]) T {
 	var element = x.value
 	var next = x.next
 	var prev = x.prev
 	if prev == nil {
-		a.inner.first = next
+		a.first = next
 	} else {
 		prev.next = next
 		x.prev = nil
 	}
 
 	if next == nil {
-		a.inner.last = prev
+		a.last = prev
 	} else {
 		next.prev = prev
 		x.next = nil
 	}
 	var empty T
 	x.value = empty
-	a.inner.length--
+	a.length--
 	return element
 }
 
-func (a LinkedList[T]) unlinkFirst(x *twoWayNode[T]) T {
+func (a *LinkedList[T]) unlinkFirst(x *twoWayNode[T]) T {
 	var element = x.value
 	var next = x.next
 	var empty T
 	x.value = empty
 	x.next = nil
-	a.inner.first = next
+	a.first = next
 	if next == nil {
-		a.inner.last = nil
+		a.last = nil
 	} else {
 		next.prev = nil
 	}
-	a.inner.length--
+	a.length--
 	return element
 }
 
-func (a LinkedList[T]) unlinkLast(x *twoWayNode[T]) T {
+func (a *LinkedList[T]) unlinkLast(x *twoWayNode[T]) T {
 	var element = x.value
 	var prev = x.prev
 	var empty T
 	x.value = empty
 	x.prev = nil
-	a.inner.last = prev
+	a.last = prev
 	if prev == nil {
-		a.inner.first = nil
+		a.first = nil
 	} else {
 		prev.next = nil
 	}
-	a.inner.length--
+	a.length--
 	return element
 }
 
@@ -364,7 +359,7 @@ func (a *linkedListIterator[T]) Next() Option[T] {
 	return None[T]()
 }
 
-func CollectToLinkedList[T any](it Iterator[T]) LinkedList[T] {
+func CollectToLinkedList[T any](it Iterator[T]) *LinkedList[T] {
 	var r = LinkedListOf[T]()
 	for v, ok := it.Next().Get(); ok; v, ok = it.Next().Get() {
 		r.Append(v)

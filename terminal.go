@@ -162,7 +162,7 @@ func Fold[T any, R any](initial R, operation func(R, T) R, it Iterator[T]) R {
 }
 
 // Splitting an iterator whose elements are pair into two lists.
-func Unzip[A any, B any](it Iterator[Pair[A, B]]) Pair[ArrayList[A], ArrayList[B]] {
+func Unzip[A any, B any](it Iterator[Pair[A, B]]) Pair[*ArrayList[A], *ArrayList[B]] {
 	var arrA = ArrayListOf[A]()
 	var arrB = ArrayListOf[B]()
 	for v, ok := it.Next().Get(); ok; v, ok = it.Next().Get() {

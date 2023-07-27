@@ -30,7 +30,7 @@ func defaultHashCode[K comparable]() func(k K) uint64 {
 	}
 }
 
-func HashMapOf[K comparable, V any](elements ...Pair[K, V]) HashMap[K, V] {
+func HashMapOf[K comparable, V any](elements ...Pair[K, V]) *HashMap[K, V] {
 	var length = len(elements)
 	var dict = MakeHashMapWithHasher[K, V](defaultHashCode[K](), length)
 	for _, v := range elements {
@@ -39,11 +39,11 @@ func HashMapOf[K comparable, V any](elements ...Pair[K, V]) HashMap[K, V] {
 	return dict
 }
 
-func MakeHashMap[K comparable, V any](capacity int) HashMap[K, V] {
+func MakeHashMap[K comparable, V any](capacity int) *HashMap[K, V] {
 	return MakeHashMapWithHasher[K, V](defaultHashCode[K](), capacity)
 }
 
-func MakeHashMapWithHasher[K comparable, V any](hasher func(K) uint64, capacity int) HashMap[K, V] {
+func MakeHashMapWithHasher[K comparable, V any](hasher func(K) uint64, capacity int) *HashMap[K, V] {
 	var length = capacity
 	var buckets = make([]int, bucketsLengthFor(length))
 	for i := 0; i < len(buckets); i++ {
@@ -52,17 +52,16 @@ func MakeHashMapWithHasher[K comparable, V any](hasher func(K) uint64, capacity 
 	if length < defaultElementsLength {
 		length = defaultElementsLength
 	}
-	var inner = &hashMap[K, V]{
+	return &HashMap[K, V]{
 		buckets:    buckets,
 		entries:    make([]entry[K, V], length),
 		hash:       hasher,
 		loadFactor: 1,
 		seed:       maphash.MakeSeed(),
 	}
-	return HashMap[K, V]{inner}
 }
 
-func HashMapFrom[K comparable, V any](collection Collection[Pair[K, V]]) HashMap[K, V] {
+func HashMapFrom[K comparable, V any](collection Collection[Pair[K, V]]) *HashMap[K, V] {
 	var length = collection.Count()
 	var dict = MakeHashMapWithHasher[K, V](defaultHashCode[K](), length)
 	ForEach(func(t Pair[K, V]) {
@@ -80,10 +79,6 @@ func bucketsLengthFor(length int) int {
 }
 
 type HashMap[K comparable, V any] struct {
-	inner *hashMap[K, V]
-}
-
-type hashMap[K comparable, V any] struct {
 	buckets     []int
 	entries     []entry[K, V]
 	appendCount int
@@ -102,18 +97,18 @@ type entry[K any, V any] struct {
 	alive bool
 }
 
-func (a HashMap[K, V]) Get(key K) V {
+func (a *HashMap[K, V]) Get(key K) V {
 	if v, ok := a.TryGet(key).Get(); ok {
 		return v
 	}
 	panic(OutOfBounds)
 }
 
-func (a HashMap[K, V]) Put(key K, value V) Option[V] {
-	var hash = a.inner.hash(key)
+func (a *HashMap[K, V]) Put(key K, value V) Option[V] {
+	var hash = a.hash(key)
 	var index = a.index(hash)
-	for i := a.inner.buckets[index]; i >= 0; i = a.inner.entries[i].next {
-		var item = a.inner.entries[i]
+	for i := a.buckets[index]; i >= 0; i = a.entries[i].next {
+		var item = a.entries[i]
 		if item.hash == hash && item.key == key {
 			var newItem = entry[K, V]{
 				hash:  item.hash,
@@ -122,35 +117,35 @@ func (a HashMap[K, V]) Put(key K, value V) Option[V] {
 				next:  item.next,
 				alive: item.alive,
 			}
-			a.inner.entries[i] = newItem
+			a.entries[i] = newItem
 			return Some(item.value)
 		}
 	}
 	var bucket int
-	if a.inner.freeLength > 0 {
-		bucket = a.inner.freeCount
-		a.inner.freeCount = a.inner.entries[a.inner.freeCount].next
-		a.inner.freeLength--
+	if a.freeLength > 0 {
+		bucket = a.freeCount
+		a.freeCount = a.entries[a.freeCount].next
+		a.freeLength--
 	} else {
 		if a.grow(a.Count() + 1) {
 			index = a.index(hash)
 		}
-		bucket = a.inner.appendCount
-		a.inner.appendCount++
+		bucket = a.appendCount
+		a.appendCount++
 	}
 	var newItem = entry[K, V]{
 		hash:  hash,
 		key:   key,
 		value: value,
-		next:  a.inner.buckets[index],
+		next:  a.buckets[index],
 		alive: true,
 	}
-	a.inner.entries[bucket] = newItem
-	a.inner.buckets[index] = bucket
+	a.entries[bucket] = newItem
+	a.buckets[index] = bucket
 	return None[V]()
 }
 
-func (a HashMap[K, V]) PutAll(elements Collection[Pair[K, V]]) {
+func (a *HashMap[K, V]) PutAll(elements Collection[Pair[K, V]]) {
 	var iter = elements.Iter()
 	if length, addLength := a.Count(), elements.Count(); length < addLength {
 		a.grow(addLength)
@@ -161,11 +156,11 @@ func (a HashMap[K, V]) PutAll(elements Collection[Pair[K, V]]) {
 	}
 }
 
-func (a HashMap[K, V]) TryGet(key K) Option[V] {
-	var hash = a.inner.hash(key)
+func (a *HashMap[K, V]) TryGet(key K) Option[V] {
+	var hash = a.hash(key)
 	var index = a.index(hash)
-	for i := a.inner.buckets[index]; i >= 0; i = a.inner.entries[i].next {
-		var item = a.inner.entries[i]
+	for i := a.buckets[index]; i >= 0; i = a.entries[i].next {
+		var item = a.entries[i]
 		if item.hash == hash && item.key == key {
 			return Some(item.value)
 		}
@@ -173,62 +168,62 @@ func (a HashMap[K, V]) TryGet(key K) Option[V] {
 	return None[V]()
 }
 
-func (a HashMap[K, V]) Remove(key K) Option[V] {
-	var hash = a.inner.hash(key)
+func (a *HashMap[K, V]) Remove(key K) Option[V] {
+	var hash = a.hash(key)
 	var index = a.index(hash)
 	var last = -1
-	for i := a.inner.buckets[index]; i >= 0; i = a.inner.entries[i].next {
-		var item = a.inner.entries[i]
+	for i := a.buckets[index]; i >= 0; i = a.entries[i].next {
+		var item = a.entries[i]
 		if item.hash == hash && item.key == key {
 			if last < 0 {
-				a.inner.buckets[index] = a.inner.entries[i].next
+				a.buckets[index] = a.entries[i].next
 			} else {
-				var item = a.inner.entries[last]
-				item.next = a.inner.entries[i].next
-				a.inner.entries[last] = item
+				var item = a.entries[last]
+				item.next = a.entries[i].next
+				a.entries[last] = item
 			}
 			var nilK K
 			var nilV V
 			var empty = entry[K, V]{
-				next:  a.inner.freeCount,
+				next:  a.freeCount,
 				key:   nilK,
 				value: nilV,
 			}
-			a.inner.entries[i] = empty
-			a.inner.freeCount = i
-			a.inner.freeCount++
+			a.entries[i] = empty
+			a.freeCount = i
+			a.freeCount++
 			return Some(item.value)
 		}
 	}
 	return None[V]()
 }
 
-func (a HashMap[K, V]) Contains(key K) bool {
+func (a *HashMap[K, V]) Contains(key K) bool {
 	return a.TryGet(key).IsSome()
 }
 
-func (a HashMap[K, V]) Count() int {
-	return a.inner.appendCount - a.inner.freeLength
+func (a *HashMap[K, V]) Count() int {
+	return a.appendCount - a.freeLength
 }
 
-func (a HashMap[K, V]) IsEmpty() bool {
+func (a *HashMap[K, V]) IsEmpty() bool {
 	return a.Count() == 0
 }
 
-func (a HashMap[K, V]) Clear() {
-	for i := 0; i < len(a.inner.buckets); i++ {
-		a.inner.buckets[i] = -1
+func (a *HashMap[K, V]) Clear() {
+	for i := 0; i < len(a.buckets); i++ {
+		a.buckets[i] = -1
 	}
-	for i := 0; i < len(a.inner.entries); i++ {
-		a.inner.entries[i] = entry[K, V]{}
+	for i := 0; i < len(a.entries); i++ {
+		a.entries[i] = entry[K, V]{}
 	}
 }
 
-func (a HashMap[K, V]) Iter() Iterator[Pair[K, V]] {
+func (a *HashMap[K, V]) Iter() Iterator[Pair[K, V]] {
 	return &hashMapIterator[K, V]{-1, a}
 }
 
-func (a HashMap[K, V]) ToSlice() []Pair[K, V] {
+func (a *HashMap[K, V]) ToSlice() []Pair[K, V] {
 	var arr = make([]Pair[K, V], a.Count())
 	ForEach(func(t Pair[K, V]) {
 		arr = append(arr, t)
@@ -236,42 +231,41 @@ func (a HashMap[K, V]) ToSlice() []Pair[K, V] {
 	return arr
 }
 
-func (a HashMap[K, V]) Clone() HashMap[K, V] {
-	var buckets = make([]int, len(a.inner.buckets))
-	copy(buckets, a.inner.buckets)
-	var entries = make([]entry[K, V], len(a.inner.entries))
-	copy(entries, a.inner.entries)
-	var inner = &hashMap[K, V]{
+func (a *HashMap[K, V]) Clone() *HashMap[K, V] {
+	var buckets = make([]int, len(a.buckets))
+	copy(buckets, a.buckets)
+	var entries = make([]entry[K, V], len(a.entries))
+	copy(entries, a.entries)
+	return &HashMap[K, V]{
 		buckets:     buckets,
 		entries:     entries,
-		appendCount: a.inner.appendCount,
-		freeCount:   a.inner.freeCount,
-		freeLength:  a.inner.freeLength,
-		hash:        a.inner.hash,
-		loadFactor:  a.inner.loadFactor,
+		appendCount: a.appendCount,
+		freeCount:   a.freeCount,
+		freeLength:  a.freeLength,
+		hash:        a.hash,
+		loadFactor:  a.loadFactor,
 	}
-	return HashMap[K, V]{inner}
 }
 
-func (a HashMap[K, V]) grow(minCapacity int) bool {
-	var entriesLength = len(a.inner.entries)
-	var bucketsLength = len(a.inner.buckets)
+func (a *HashMap[K, V]) grow(minCapacity int) bool {
+	var entriesLength = len(a.entries)
+	var bucketsLength = len(a.buckets)
 	var isRehash = false
-	if float64(minCapacity/bucketsLength) > a.inner.loadFactor {
+	if float64(minCapacity/bucketsLength) > a.loadFactor {
 		var newBucketsLength = bucketsLength * 2
 		var newBuckets = make([]int, newBucketsLength)
 		for i := 0; i < len(newBuckets); i++ {
 			newBuckets[i] = -1
 		}
-		for i, v := range a.inner.entries {
+		for i, v := range a.entries {
 			if v.alive {
 				var bucket = int(v.hash % uint64(newBucketsLength))
 				v.next = newBuckets[bucket]
-				a.inner.entries[i] = v
+				a.entries[i] = v
 				newBuckets[bucket] = i
 			}
 		}
-		a.inner.buckets = newBuckets
+		a.buckets = newBuckets
 		isRehash = true
 	}
 	if minCapacity > entriesLength {
@@ -280,25 +274,25 @@ func (a HashMap[K, V]) grow(minCapacity int) bool {
 			newLength = minCapacity
 		}
 		var newEntries = make([]entry[K, V], newLength)
-		copy(newEntries, a.inner.entries)
-		a.inner.entries = newEntries
+		copy(newEntries, a.entries)
+		a.entries = newEntries
 	}
 	return isRehash
 }
 
-func (a HashMap[K, V]) index(hash uint64) int {
-	return int(hash % uint64(len(a.inner.buckets)))
+func (a *HashMap[K, V]) index(hash uint64) int {
+	return int(hash % uint64(len(a.buckets)))
 }
 
 type hashMapIterator[K comparable, V any] struct {
 	index  int
-	source HashMap[K, V]
+	source *HashMap[K, V]
 }
 
 func (a *hashMapIterator[K, V]) Next() Option[Pair[K, V]] {
-	for a.index < len(a.source.inner.entries)-1 {
+	for a.index < len(a.source.entries)-1 {
 		a.index++
-		var item = a.source.inner.entries[a.index]
+		var item = a.source.entries[a.index]
 		if item.alive {
 			return Some(PairOf(item.key, item.value))
 		}
@@ -306,7 +300,7 @@ func (a *hashMapIterator[K, V]) Next() Option[Pair[K, V]] {
 	return None[Pair[K, V]]()
 }
 
-func CollectToHashMap[K comparable, V any](it Iterator[Pair[K, V]]) HashMap[K, V] {
+func CollectToHashMap[K comparable, V any](it Iterator[Pair[K, V]]) *HashMap[K, V] {
 	var r = HashMapOf[K, V]()
 	for v, ok := it.Next().Get(); ok; v, ok = it.Next().Get() {
 		r.Put(v.First, v.Second)
