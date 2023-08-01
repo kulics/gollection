@@ -1,14 +1,13 @@
-package gollection
+package util
 
 // Constructing an Result with a success value.
 func Ok[T any](a T) Result[T] {
-	return Result[T]{a, nil}
+	return Result[T]{value: a}
 }
 
 // Constructing an Result with a error value.
 func Err[T any](a error) Result[T] {
-	var v T
-	return Result[T]{v, a}
+	return Result[T]{err: a}
 }
 
 // Type-safe errorable types.
@@ -19,9 +18,9 @@ type Result[T any] struct {
 	err   error
 }
 
-// Get can use go's customary deconstructed Result,
+// Val can use go's customary deconstructed Result,
 // which is used like the built-in map, and can safely use value when error is nil.
-func (a Result[T]) Get() (value T, err error) {
+func (a Result[T]) Val() (value T, err error) {
 	return a.value, a.err
 }
 
@@ -34,18 +33,16 @@ func (a Result[T]) OrPanic() T {
 }
 
 // Get the value in an safe way, and get else value when error is not nil.
-func (a Result[T]) OrElse(value T) T {
+func (a Result[T]) Or(value T) T {
 	if a.err != nil {
 		return value
 	}
 	return a.value
 }
 
-// Get the value in an safe way, and get else value when error is not nil.
-// The get function is lazy and can be used instead of OrElse when you need to avoid unnecessary computations.
-func (a Result[T]) OrGet(get func() T) T {
+func (a Result[T]) OrDefault() (v T) {
 	if a.err != nil {
-		return get()
+		return
 	}
 	return a.value
 }
@@ -68,8 +65,8 @@ func (a Result[T]) IfOk(action func(value T)) {
 }
 
 // Execute the action when error is not nil.
-func (a Result[T]) IfErr(action func()) {
+func (a Result[T]) IfErr(action func(err error)) {
 	if a.err != nil {
-		action()
+		action(a.err)
 	}
 }

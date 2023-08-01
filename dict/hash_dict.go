@@ -1,9 +1,22 @@
-package gollection
+package dict
 
 import (
 	"hash/maphash"
 	"unsafe"
+
+	"github.com/kulics/gollection/iter"
+	"github.com/kulics/gollection/util"
 )
+
+const defaultElementsLength = 10
+
+func arrayGrow(length int) int {
+	var newLength = length + (length >> 1)
+	if newLength < defaultElementsLength {
+		newLength = defaultElementsLength
+	}
+	return newLength
+}
 
 func defaultHashCode[K comparable]() func(k K) uint64 {
 	var h maphash.Hash
@@ -30,20 +43,20 @@ func defaultHashCode[K comparable]() func(k K) uint64 {
 	}
 }
 
-func HashMapOf[K comparable, V any](elements ...Pair[K, V]) *HashMap[K, V] {
+func HashDictOf[K comparable, V any](elements ...util.Pair[K, V]) *HashDict[K, V] {
 	var length = len(elements)
-	var dict = MakeHashMapWithHasher[K, V](defaultHashCode[K](), length)
+	var dict = MakeHashDictWithHasher[K, V](defaultHashCode[K](), length)
 	for _, v := range elements {
 		dict.Put(v.First, v.Second)
 	}
 	return dict
 }
 
-func MakeHashMap[K comparable, V any](capacity int) *HashMap[K, V] {
-	return MakeHashMapWithHasher[K, V](defaultHashCode[K](), capacity)
+func MakeHashDict[K comparable, V any](capacity int) *HashDict[K, V] {
+	return MakeHashDictWithHasher[K, V](defaultHashCode[K](), capacity)
 }
 
-func MakeHashMapWithHasher[K comparable, V any](hasher func(K) uint64, capacity int) *HashMap[K, V] {
+func MakeHashDictWithHasher[K comparable, V any](hasher func(K) uint64, capacity int) *HashDict[K, V] {
 	var length = capacity
 	var buckets = make([]int, bucketsLengthFor(length))
 	for i := 0; i < len(buckets); i++ {
@@ -52,7 +65,7 @@ func MakeHashMapWithHasher[K comparable, V any](hasher func(K) uint64, capacity 
 	if length < defaultElementsLength {
 		length = defaultElementsLength
 	}
-	return &HashMap[K, V]{
+	return &HashDict[K, V]{
 		buckets:    buckets,
 		entries:    make([]entry[K, V], length),
 		hash:       hasher,
@@ -61,12 +74,12 @@ func MakeHashMapWithHasher[K comparable, V any](hasher func(K) uint64, capacity 
 	}
 }
 
-func HashMapFrom[K comparable, V any](collection Collection[Pair[K, V]]) *HashMap[K, V] {
+func HashDictFrom[K comparable, V any](collection iter.Collection[util.Pair[K, V]]) *HashDict[K, V] {
 	var length = collection.Count()
-	var dict = MakeHashMapWithHasher[K, V](defaultHashCode[K](), length)
-	ForEach(func(t Pair[K, V]) {
+	var dict = MakeHashDictWithHasher[K, V](defaultHashCode[K](), length)
+	iter.ForEach(func(t util.Pair[K, V]) {
 		dict.Put(t.First, t.Second)
-	}, collection.Iter())
+	}, collection.Iterator())
 	return dict
 }
 
@@ -78,7 +91,7 @@ func bucketsLengthFor(length int) int {
 	return bucketsLength
 }
 
-type HashMap[K comparable, V any] struct {
+type HashDict[K comparable, V any] struct {
 	buckets     []int
 	entries     []entry[K, V]
 	appendCount int
@@ -97,14 +110,27 @@ type entry[K any, V any] struct {
 	alive bool
 }
 
-func (a *HashMap[K, V]) Get(key K) V {
-	if v, ok := a.TryGet(key).Get(); ok {
-		return v
-	}
-	panic(OutOfBounds)
+func (a *HashDict[K, V]) Count() int {
+	return a.appendCount - a.freeLength
 }
 
-func (a *HashMap[K, V]) Put(key K, value V) Option[V] {
+func (a *HashDict[K, V]) Contains(key K) bool {
+	return a.At(key).IsNotNil()
+}
+
+func (a *HashDict[K, V]) At(key K) util.Ref[V] {
+	var hash = a.hash(key)
+	var index = a.index(hash)
+	for i := a.buckets[index]; i >= 0; i = a.entries[i].next {
+		var item = a.entries[i]
+		if item.hash == hash && item.key == key {
+			return util.RefOf(&a.entries[i].value)
+		}
+	}
+	return util.RefOf[V](nil)
+}
+
+func (a *HashDict[K, V]) Put(key K, value V) util.Opt[V] {
 	var hash = a.hash(key)
 	var index = a.index(hash)
 	for i := a.buckets[index]; i >= 0; i = a.entries[i].next {
@@ -118,7 +144,7 @@ func (a *HashMap[K, V]) Put(key K, value V) Option[V] {
 				alive: item.alive,
 			}
 			a.entries[i] = newItem
-			return Some(item.value)
+			return util.Some(item.value)
 		}
 	}
 	var bucket int
@@ -142,33 +168,10 @@ func (a *HashMap[K, V]) Put(key K, value V) Option[V] {
 	}
 	a.entries[bucket] = newItem
 	a.buckets[index] = bucket
-	return None[V]()
+	return util.None[V]()
 }
 
-func (a *HashMap[K, V]) PutAll(elements Collection[Pair[K, V]]) {
-	var iter = elements.Iter()
-	if length, addLength := a.Count(), elements.Count(); length < addLength {
-		a.grow(addLength)
-	}
-	for item, ok := iter.Next().Get(); ok; item, ok = iter.Next().Get() {
-		var k, v = item.Get()
-		a.Put(k, v)
-	}
-}
-
-func (a *HashMap[K, V]) TryGet(key K) Option[V] {
-	var hash = a.hash(key)
-	var index = a.index(hash)
-	for i := a.buckets[index]; i >= 0; i = a.entries[i].next {
-		var item = a.entries[i]
-		if item.hash == hash && item.key == key {
-			return Some(item.value)
-		}
-	}
-	return None[V]()
-}
-
-func (a *HashMap[K, V]) Remove(key K) Option[V] {
+func (a *HashDict[K, V]) Remove(key K) util.Opt[V] {
 	var hash = a.hash(key)
 	var index = a.index(hash)
 	var last = -1
@@ -192,25 +195,13 @@ func (a *HashMap[K, V]) Remove(key K) Option[V] {
 			a.entries[i] = empty
 			a.freeCount = i
 			a.freeCount++
-			return Some(item.value)
+			return util.Some(item.value)
 		}
 	}
-	return None[V]()
+	return util.None[V]()
 }
 
-func (a *HashMap[K, V]) Contains(key K) bool {
-	return a.TryGet(key).IsSome()
-}
-
-func (a *HashMap[K, V]) Count() int {
-	return a.appendCount - a.freeLength
-}
-
-func (a *HashMap[K, V]) IsEmpty() bool {
-	return a.Count() == 0
-}
-
-func (a *HashMap[K, V]) Clear() {
+func (a *HashDict[K, V]) Clear() {
 	for i := 0; i < len(a.buckets); i++ {
 		a.buckets[i] = -1
 	}
@@ -219,24 +210,16 @@ func (a *HashMap[K, V]) Clear() {
 	}
 }
 
-func (a *HashMap[K, V]) Iter() Iterator[Pair[K, V]] {
-	return &hashMapIterator[K, V]{-1, a}
+func (a *HashDict[K, V]) Iterator() iter.Iterator[util.Pair[K, V]] {
+	return &hashDictIterator[K, V]{-1, a}
 }
 
-func (a *HashMap[K, V]) ToSlice() []Pair[K, V] {
-	var arr = make([]Pair[K, V], a.Count())
-	ForEach(func(t Pair[K, V]) {
-		arr = append(arr, t)
-	}, a.Iter())
-	return arr
-}
-
-func (a *HashMap[K, V]) Clone() *HashMap[K, V] {
+func (a *HashDict[K, V]) Clone() *HashDict[K, V] {
 	var buckets = make([]int, len(a.buckets))
 	copy(buckets, a.buckets)
 	var entries = make([]entry[K, V], len(a.entries))
 	copy(entries, a.entries)
-	return &HashMap[K, V]{
+	return &HashDict[K, V]{
 		buckets:     buckets,
 		entries:     entries,
 		appendCount: a.appendCount,
@@ -247,7 +230,7 @@ func (a *HashMap[K, V]) Clone() *HashMap[K, V] {
 	}
 }
 
-func (a *HashMap[K, V]) grow(minCapacity int) bool {
+func (a *HashDict[K, V]) grow(minCapacity int) bool {
 	var entriesLength = len(a.entries)
 	var bucketsLength = len(a.buckets)
 	var isRehash = false
@@ -280,30 +263,40 @@ func (a *HashMap[K, V]) grow(minCapacity int) bool {
 	return isRehash
 }
 
-func (a *HashMap[K, V]) index(hash uint64) int {
+func (a *HashDict[K, V]) index(hash uint64) int {
 	return int(hash % uint64(len(a.buckets)))
 }
 
-type hashMapIterator[K comparable, V any] struct {
+type hashDictIterator[K comparable, V any] struct {
 	index  int
-	source *HashMap[K, V]
+	source *HashDict[K, V]
 }
 
-func (a *hashMapIterator[K, V]) Next() Option[Pair[K, V]] {
+func (a *hashDictIterator[K, V]) Next() util.Opt[util.Pair[K, V]] {
 	for a.index < len(a.source.entries)-1 {
 		a.index++
 		var item = a.source.entries[a.index]
 		if item.alive {
-			return Some(PairOf(item.key, item.value))
+			return util.Some(util.PairOf(item.key, item.value))
 		}
 	}
-	return None[Pair[K, V]]()
+	return util.None[util.Pair[K, V]]()
 }
 
-func CollectToHashMap[K comparable, V any](it Iterator[Pair[K, V]]) *HashMap[K, V] {
-	var r = HashMapOf[K, V]()
-	for v, ok := it.Next().Get(); ok; v, ok = it.Next().Get() {
-		r.Put(v.First, v.Second)
-	}
-	return r
+func HashDictCollector[K comparable, V any]() iter.Collector[*HashDict[K, V], util.Pair[K, V], *HashDict[K, V]] {
+	return hashDictCollector[K, V]{}
+}
+
+type hashDictCollector[K comparable, V any] struct{}
+
+func (a hashDictCollector[K, V]) Builder() *HashDict[K, V] {
+	return MakeHashDict[K, V](10)
+}
+
+func (a hashDictCollector[K, V]) Append(supplier *HashDict[K, V], element util.Pair[K, V]) {
+	supplier.Put(element.First, element.Second)
+}
+
+func (a hashDictCollector[K, V]) Finish(supplier *HashDict[K, V]) *HashDict[K, V] {
+	return supplier
 }

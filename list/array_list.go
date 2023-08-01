@@ -1,4 +1,19 @@
-package gollection
+package list
+
+import (
+	"github.com/kulics/gollection/iter"
+	"github.com/kulics/gollection/util"
+)
+
+const defaultElementsLength = 10
+
+func arrayGrow(length int) int {
+	var newLength = length + (length >> 1)
+	if newLength < defaultElementsLength {
+		newLength = defaultElementsLength
+	}
+	return newLength
+}
 
 // Constructing an ArrayList with variable-length parameters
 func ArrayListOf[T any](elements ...T) *ArrayList[T] {
@@ -18,8 +33,8 @@ func MakeArrayList[T any](capacity int) *ArrayList[T] {
 }
 
 // Constructing an ArrayList from other Collection.
-func ArrayListFrom[T any](collection Collection[T]) *ArrayList[T] {
-	return &ArrayList[T]{collection.ToSlice(), collection.Count()}
+func ArrayListFrom[T any](collection iter.Collection[T]) *ArrayList[T] {
+	return &ArrayList[T]{iter.ToSlice(collection), collection.Count()}
 }
 
 // List implemented using Array.
@@ -33,34 +48,36 @@ func (a *ArrayList[T]) LastIndex() int {
 	return a.length - 1
 }
 
-func (a *ArrayList[T]) GetFirst() T {
-	return a.Get(0)
-}
-
-func (a *ArrayList[T]) TryGetFirst() Option[T] {
-	return a.TryGet(0)
-}
-
-func (a *ArrayList[T]) GetLast() T {
-	return a.Get(a.LastIndex())
-}
-
-func (a *ArrayList[T]) TryGetLast() Option[T] {
-	return a.TryGet(a.LastIndex())
-}
-
-// Add element at the begin.
-func (a *ArrayList[T]) Prepend(element T) {
-	a.Insert(0, element)
-}
-
-// Add multiple elements at the begin.
-func (a *ArrayList[T]) PrependAll(elements Collection[T]) {
-	a.InsertAll(0, elements)
+// Returns the element at the end.
+// Return None when the list is empty.
+func (a *ArrayList[T]) Peek() util.Ref[T] {
+	return a.At(a.LastIndex())
 }
 
 // Add element at the end.
-func (a *ArrayList[T]) Append(element T) {
+func (a *ArrayList[T]) Push(element T) {
+	a.PushBack(element)
+}
+
+// Add multiple elements at the end.
+func (a *ArrayList[T]) PushAll(elements iter.Collection[T]) {
+	a.PushBackAll(elements)
+}
+
+// Remove element at the end.
+// Return None when the list is empty.
+func (a *ArrayList[T]) Pop() util.Opt[T] {
+	return a.PopBack()
+}
+
+// Returns the element at the end.
+// Return None when the list is empty.
+func (a *ArrayList[T]) PeekBack() util.Ref[T] {
+	return a.At(a.LastIndex())
+}
+
+// Add element at the end.
+func (a *ArrayList[T]) PushBack(element T) {
 	if growLength := a.length + 1; len(a.elements) < growLength {
 		a.grow(growLength)
 	}
@@ -69,23 +86,50 @@ func (a *ArrayList[T]) Append(element T) {
 }
 
 // Add multiple elements at the end.
-func (a *ArrayList[T]) AppendAll(elements Collection[T]) {
+func (a *ArrayList[T]) PushBackAll(elements iter.Collection[T]) {
 	var additional = elements.Count()
 	if growLength := a.length + additional; len(a.elements) < growLength {
 		a.grow(growLength)
 	}
 	var i = a.length
-	ForEach(func(item T) {
+	iter.ForEach(func(item T) {
 		a.elements[i] = item
 		a.length++
 		i++
-	}, elements.Iter())
+	}, elements.Iterator())
+}
+
+// Remove element at the end.
+func (a *ArrayList[T]) PopBack() util.Opt[T] {
+	if a.length == 0 {
+		return util.None[T]()
+	}
+	var removed = a.elements[a.length-1]
+	var emptyValue T
+	a.elements[a.length-1] = emptyValue
+	a.length--
+	return util.Some(removed)
+}
+
+// Returns the element at the begin.
+// Return None when the list is empty.
+func (a *ArrayList[T]) PeekFront() util.Ref[T] {
+	return a.At(0)
+}
+
+// Return the element at the index.
+// Return None when a subscript is out of bounds.
+func (a *ArrayList[T]) At(index int) util.Ref[T] {
+	if a.isOutOfBounds(index) {
+		return util.RefOf[T](nil)
+	}
+	return util.RefOf(&a.elements[index])
 }
 
 // Add element at the index.
 func (a *ArrayList[T]) Insert(index int, element T) {
 	if index < 0 || index > a.length {
-		panic(OutOfBounds)
+		panic(iter.OutOfBounds)
 	}
 	if growLength := a.length + 1; len(a.elements) < growLength {
 		a.grow(growLength)
@@ -95,9 +139,9 @@ func (a *ArrayList[T]) Insert(index int, element T) {
 }
 
 // Add multiple elements at the index.
-func (a *ArrayList[T]) InsertAll(index int, elements Collection[T]) {
+func (a *ArrayList[T]) InsertAll(index int, elements iter.Collection[T]) {
 	if index < 0 || index > a.length {
-		panic(OutOfBounds)
+		panic(iter.OutOfBounds)
 	}
 	var additional = elements.Count()
 	if growLength := a.length + additional; len(a.elements) < growLength {
@@ -105,17 +149,17 @@ func (a *ArrayList[T]) InsertAll(index int, elements Collection[T]) {
 	}
 	copy(a.elements[index+additional:], a.elements[index:])
 	var i = index
-	ForEach(func(item T) {
+	iter.ForEach(func(item T) {
 		a.elements[i] = item
 		a.length++
 		i++
-	}, elements.Iter())
+	}, elements.Iterator())
 }
 
 // Remove element at the index.
-func (a *ArrayList[T]) RemoveAt(index int) T {
+func (a *ArrayList[T]) Remove(index int) T {
 	if a.isOutOfBounds(index) {
-		panic(OutOfBounds)
+		panic(iter.OutOfBounds)
 	}
 	var removed = a.elements[index]
 	copy(a.elements[:index], a.elements[index+1:])
@@ -125,10 +169,10 @@ func (a *ArrayList[T]) RemoveAt(index int) T {
 	return removed
 }
 
-func (a *ArrayList[T]) RemoveRange(at Range[int]) {
+func (a *ArrayList[T]) RemoveRange(at iter.Range[int]) {
 	var begin, end = at.Get()
 	if a.isOutOfBounds(begin) || a.isOutOfBounds(end-1) {
-		panic(OutOfBounds)
+		panic(iter.OutOfBounds)
 	}
 	if end == begin {
 		return
@@ -148,44 +192,6 @@ func (a *ArrayList[T]) Reserve(additional int) {
 	}
 }
 
-// Return the element at the index.
-// A panic is raised when a subscript is out of bounds.
-func (a *ArrayList[T]) Get(index int) T {
-	if v, ok := a.TryGet(index).Get(); ok {
-		return v
-	}
-	panic(OutOfBounds)
-}
-
-// Set the element at the index, return the old element.
-// A panic is raised when a subscript is out of bounds.
-func (a *ArrayList[T]) Set(index int, newElement T) T {
-	if v, ok := a.TrySet(index, newElement).Get(); ok {
-		return v
-	}
-	panic(OutOfBounds)
-}
-
-// Return the element at the index.
-// Return None when a subscript is out of bounds.
-func (a *ArrayList[T]) TryGet(index int) Option[T] {
-	if a.isOutOfBounds(index) {
-		return None[T]()
-	}
-	return Some(a.elements[index])
-}
-
-// Set the element at the index, return the old element.
-// Return None when a subscript is out of bounds.
-func (a *ArrayList[T]) TrySet(index int, newElement T) Option[T] {
-	if a.isOutOfBounds(index) {
-		return None[T]()
-	}
-	var oldElement = a.elements[index]
-	a.elements[index] = newElement
-	return Some(oldElement)
-}
-
 // Clears all elements, but does not reset the space.
 func (a *ArrayList[T]) Clear() {
 	var emptyValue T
@@ -200,21 +206,9 @@ func (a *ArrayList[T]) Count() int {
 	return a.length
 }
 
-// Return true when the number of elements of list is 0.
-func (a *ArrayList[T]) IsEmpty() bool {
-	return a.length == 0
-}
-
 // Return the Iterator of list.
-func (a *ArrayList[T]) Iter() Iterator[T] {
+func (a *ArrayList[T]) Iterator() iter.Iterator[T] {
 	return &arrayListIterator[T]{-1, a}
-}
-
-// Return a new built-in slice that copies all elements.
-func (a *ArrayList[T]) ToSlice() []T {
-	var slice = make([]T, a.Count())
-	copy(slice, a.elements)
-	return slice
 }
 
 // Return a new list that copies all elements.
@@ -254,18 +248,28 @@ type arrayListIterator[T any] struct {
 	source *ArrayList[T]
 }
 
-func (a *arrayListIterator[T]) Next() Option[T] {
+func (a *arrayListIterator[T]) Next() util.Opt[T] {
 	if a.index < a.source.Count()-1 {
 		a.index++
-		return Some(a.source.elements[a.index])
+		return util.Some(a.source.elements[a.index])
 	}
-	return None[T]()
+	return util.None[T]()
 }
 
-func CollectToArrayList[T any](it Iterator[T]) *ArrayList[T] {
-	var r = ArrayListOf[T]()
-	for v, ok := it.Next().Get(); ok; v, ok = it.Next().Get() {
-		r.Append(v)
-	}
-	return r
+func ArrayListCollector[T any]() iter.Collector[*ArrayList[T], T, *ArrayList[T]] {
+	return arrayListCollector[T]{}
+}
+
+type arrayListCollector[T any] struct{}
+
+func (a arrayListCollector[T]) Builder() *ArrayList[T] {
+	return MakeArrayList[T](10)
+}
+
+func (a arrayListCollector[T]) Append(supplier *ArrayList[T], element T) {
+	supplier.PushBack(element)
+}
+
+func (a arrayListCollector[T]) Finish(supplier *ArrayList[T]) *ArrayList[T] {
+	return supplier
 }

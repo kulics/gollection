@@ -1,4 +1,4 @@
-package gollection
+package stack
 
 import (
 	"testing"
@@ -19,16 +19,16 @@ func TestArrayStack(t *testing.T) {
 	if stack.Capacity() != defaultElementsLength {
 		t.Fatal("stack capacity not eq defaultElementsLength")
 	}
-	if stack.Peek() != 1 {
+	if stack.Peek().Get() != 1 {
 		t.Fatal("element of index 0 is not 1")
 	}
 	if stack.Count() != 1 {
 		t.Fatal("stack count not eq 1")
 	}
-	if v := stack.Pop(); v != 1 {
+	if v := stack.Pop().OrPanic(); v != 1 {
 		t.Fatal("element of top is not 1")
 	}
-	if stack.TryPop().IsSome() {
+	if stack.Pop().IsSome() {
 		t.Fatal("stack must has not element")
 	}
 	for i := 0; i <= 10; i++ {
@@ -68,23 +68,18 @@ func TestArrayStack(t *testing.T) {
 	if stack.Capacity() != 30 {
 		t.Fatal("stack capacity not grow to 30")
 	}
-	var slice = stack.ToSlice()
-	if len(slice) != 0 {
-		t.Fatal("ToSlice count not eq to 0")
-	}
-	var stackB = ArrayStackFrom[int](ArrayListOf(1, 2, 3))
+	var stackB = ArrayStackFrom[int](ArrayStackOf(3, 2, 1))
 	if stackB.Count() != 3 {
 		t.Fatal("stack count not eq 3")
 	}
 	if stackB.Capacity() != 3 {
-		t.Fatal("stack capacity not eq 3")
+		t.Fatalf("stack capacity not eq 3, it is eq %d", stackB.Capacity())
 	}
-	var iter = stackB.Iter()
+	var iter = stackB.Iterator()
 	for i := 3; i >= 1; i-- {
-		var item = iter.Next()
-		if i != item.OrPanic() {
+		if item, ok := iter.Next().Val(); ok && i != item {
 			t.Fatal("element error")
 		}
 	}
-	var _ AnyStack[int] = stack
+	var _ Stack[int] = stack
 }

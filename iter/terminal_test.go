@@ -1,4 +1,4 @@
-package gollection
+package iter
 
 import (
 	"testing"
@@ -6,64 +6,64 @@ import (
 
 func TestTerminal(t *testing.T) {
 	var datas = Slice[int]([]int{1, 2, 3, 4, 5})
-	if !Contains(3, datas.Iter()) {
+	if !Contains(3, datas.Iterator()) {
 		t.Fatal("Contains error")
 	}
-	if Sum(datas.Iter()) != 15 {
+	if Sum(datas.Iterator()) != 15 {
 		t.Fatal("Sum error")
 	}
-	if Product(datas.Iter()) != 120 {
+	if Product(datas.Iterator()) != 120 {
 		t.Fatal("Product error")
 	}
-	if Average(datas.Iter()) != 3 {
+	if Average(datas.Iterator()) != 3 {
 		t.Fatal("Average error")
 	}
-	if Count(datas.Iter()) != 5 {
+	if Count(datas.Iterator()) != 5 {
 		t.Fatal("Count error")
 	}
-	if Max(datas.Iter()).value != 5 {
+	if Max(datas.Iterator()).OrPanic() != 5 {
 		t.Fatal("Max error")
 	}
-	if Min(datas.Iter()).value != 1 {
+	if Min(datas.Iterator()).OrPanic() != 1 {
 		t.Fatal("Min error")
 	}
 	var sum int
 	testSum := func(i int) {
 		sum += i
 	}
-	ForEach(testSum, datas.Iter())
+	ForEach(testSum, datas.Iterator())
 	if sum != 15 {
 		t.Fatal("ForEach error")
 	}
 	testMatch := func(i int) bool {
 		return i > 0
 	}
-	if !AllMatch(testMatch, datas.Iter()) {
+	if !AllMatch(testMatch, datas.Iterator()) {
 		t.Fatal("AllMatch error")
 	}
-	if NoneMatch(testMatch, datas.Iter()) {
+	if NoneMatch(testMatch, datas.Iterator()) {
 		t.Fatal("NoneMatch error")
 	}
-	if !AnyMatch(testMatch, datas.Iter()) {
+	if !AnyMatch(testMatch, datas.Iterator()) {
 		t.Fatal("AnyMatch error")
 	}
-	if First(datas.Iter()).OrPanic() != 1 {
+	if First(datas.Iterator()).OrPanic() != 1 {
 		t.Fatal("First error")
 	}
-	if Last(datas.Iter()).OrPanic() != 5 {
+	if Last(datas.Iterator()).OrPanic() != 5 {
 		t.Fatal("Last error")
 	}
-	if At(2, datas.Iter()).OrPanic() != 3 {
+	if At(2, datas.Iterator()).OrPanic() != 3 {
 		t.Fatal("At error")
 	}
 	if Reduce(func(r int, t int) int {
 		return r + t
-	}, datas.Iter()).value != 15 {
+	}, datas.Iterator()).OrPanic() != 15 {
 		t.Fatal("Reduce error")
 	}
 	if Fold(0, func(r int, t int) int {
 		return r + t
-	}, datas.Iter()) != 15 {
+	}, datas.Iterator()) != 15 {
 		t.Fatal("Fold error")
 	}
 }
