@@ -76,6 +76,5 @@ func TestLinkedList(t *testing.T) {
 	if list.Count() != 6 {
 		t.Fatal("list count not eq 6")
 	}
-	var _ BackwardList[int] = list
-	var _ ForwardList[int] = list
+	var _ BiList[int] = list
 }

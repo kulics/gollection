@@ -104,6 +104,5 @@ func TestArrayList(t *testing.T) {
 	if !Equals[int](ArrayListOf(1, 3), list) {
 		t.Fatal("list elements not expect")
 	}
-	var _ IndexList[int] = list
-	var _ BackwardList[int] = list
+	var _ IdxList[int] = list
 }

@@ -140,7 +140,7 @@ func ToSlice[T any](c Collection[T]) Slice[T]
 
 ### List
 
-We provide the `List` interface, `ForwardList` interface, `BackwardList` interface and `IndexList` interface to describe the ordered sequences, and provide `ArrayList` and `LinkedList` as its implementation types.
+We provide the `List` interface, `BiList` interface and `IdxList` interface to describe the ordered sequences, and provide `ArrayList` and `LinkedList` as its implementation types.
 
 ```go
 package list
@@ -154,23 +154,19 @@ type List[T any] interface {
 	Clear()
 }
 
-type ForwardList[T any] interface {
+type BiList[T any] interface {
 	List[T]
 
 	PeekFront() util.Ref[T]
 	PushFront(element T)
 	PopFront() util.Opt[T]
-}
-
-type BackwardList[T any] interface {
-	List[T]
 
 	PeekBack() util.Ref[T]
-	PopBack() util.Opt[T]
 	PushBack(element T)
+	PopBack() util.Opt[T]
 }
 
-type IndexList[T any] interface {
+type IdxList[T any] interface {
 	List[T]
 
 	At(index int) util.Ref[T]

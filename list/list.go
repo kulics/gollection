@@ -15,17 +15,12 @@ type List[T any] interface {
 }
 
 // Collection's extended interfaces, can provide more functional abstraction for ordered sequences.
-type ForwardList[T any] interface {
+type BiList[T any] interface {
 	List[T]
 
 	PeekFront() util.Ref[T]
 	PushFront(element T)
 	PopFront() util.Opt[T]
-}
-
-// Collection's extended interfaces, can provide more functional abstraction for ordered sequences.
-type BackwardList[T any] interface {
-	List[T]
 
 	PeekBack() util.Ref[T]
 	PushBack(element T)
@@ -33,7 +28,7 @@ type BackwardList[T any] interface {
 }
 
 // Collection's extended interfaces, can provide more functional abstraction for ordered sequences.
-type IndexList[T any] interface {
+type IdxList[T any] interface {
 	List[T]
 
 	At(index int) util.Ref[T]
