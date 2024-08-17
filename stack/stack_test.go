@@ -5,34 +5,34 @@ import (
 )
 
 func TestArrayStack(t *testing.T) {
-	var stack = ArrayStackOf[int]()
+	var stack = Of[int]()
 	if stack.Count() != 0 {
 		t.Fatal("stack count not eq 0")
 	}
 	if stack.Capacity() != defaultElementsLength {
 		t.Fatal("stack capacity not eq defaultElementsLength")
 	}
-	stack.Push(1)
+	stack.AddLast(1)
 	if stack.Count() != 1 {
 		t.Fatal("stack count not eq 1")
 	}
 	if stack.Capacity() != defaultElementsLength {
 		t.Fatal("stack capacity not eq defaultElementsLength")
 	}
-	if stack.Peek().Get() != 1 {
+	if stack.Last().Get() != 1 {
 		t.Fatal("element of index 0 is not 1")
 	}
 	if stack.Count() != 1 {
 		t.Fatal("stack count not eq 1")
 	}
-	if v := stack.Pop().OrPanic(); v != 1 {
+	if v := stack.RemoveLast().OrPanic(); v != 1 {
 		t.Fatal("element of top is not 1")
 	}
-	if stack.Pop().IsSome() {
+	if stack.RemoveLast().IsSome() {
 		t.Fatal("stack must has not element")
 	}
 	for i := 0; i <= 10; i++ {
-		stack.Push(i)
+		stack.AddLast(i)
 	}
 	if stack.Count() != 11 {
 		t.Fatal("stack count not eq 11")
@@ -68,7 +68,7 @@ func TestArrayStack(t *testing.T) {
 	if stack.Capacity() != 30 {
 		t.Fatal("stack capacity not grow to 30")
 	}
-	var stackB = ArrayStackFrom[int](ArrayStackOf(3, 2, 1))
+	var stackB = From[int](Of(3, 2, 1))
 	if stackB.Count() != 3 {
 		t.Fatal("stack count not eq 3")
 	}
@@ -81,5 +81,4 @@ func TestArrayStack(t *testing.T) {
 			t.Fatal("element error")
 		}
 	}
-	var _ Stack[int] = stack
 }

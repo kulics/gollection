@@ -1,6 +1,6 @@
-package iter
+package seq
 
-import "github.com/kulics/gollection/util"
+import "github.com/kulics/gollection/option"
 
 // Collection is implemented via String, which is isomorphic to the built-in string.
 type String string
@@ -18,10 +18,10 @@ type stringIterator struct {
 	source []rune
 }
 
-func (a *stringIterator) Next() util.Opt[rune] {
+func (a *stringIterator) Next() option.Option[rune] {
 	if a.index < len(a.source)-1 {
 		a.index++
-		return util.Some(a.source[a.index])
+		return option.Some(a.source[a.index])
 	}
-	return util.None[rune]()
+	return option.None[rune]()
 }

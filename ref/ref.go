@@ -1,34 +1,34 @@
-package util
+package ref
 
-func RefOf[T any](v *T) Ref[T] {
+func Of[T any](v *T) Ref[T] {
 	return Ref[T]{v}
 }
 
 type Ref[T any] struct {
-	value *T
+	Ptr *T
 }
 
 func (a Ref[T]) Val() (v T, ok bool) {
-	if a.value == nil {
+	if a.Ptr == nil {
 		return
 	}
-	return *a.value, true
+	return *a.Ptr, true
 }
 
 func (a Ref[T]) Get() T {
-	return *a.value
+	return *a.Ptr
 }
 
 func (a Ref[T]) Set(v T) T {
-	var old = *a.value
-	*a.value = v
+	var old = *a.Ptr
+	*a.Ptr = v
 	return old
 }
 
 func (a Ref[T]) IsNil() bool {
-	return a.value == nil
+	return a.Ptr == nil
 }
 
 func (a Ref[T]) IsNotNil() bool {
-	return a.value != nil
+	return a.Ptr != nil
 }

@@ -1,4 +1,4 @@
-package iter
+package seq
 
 import (
 	"testing"
@@ -14,5 +14,5 @@ func TestTransform(t *testing.T) {
 	square := func(i int) int {
 		return i * i
 	}
-	ForEach(show, Map(square, Filter(even, Slice[int]([]int{1, 2, 3, 4, 5, 6, 7}).Iterator())))
+	ForEach(show, Map(square, Filter[int](even, Slice[int]([]int{1, 2, 3, 4, 5, 6, 7}))))
 }

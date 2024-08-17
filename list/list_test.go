@@ -3,18 +3,18 @@ package list
 import (
 	"testing"
 
-	"github.com/kulics/gollection/iter"
+	"github.com/kulics/gollection/seq"
 )
 
 func TestArrayList(t *testing.T) {
-	var list = ArrayListOf[int]()
+	var list = Of[int]()
 	if list.Count() != 0 {
 		t.Fatal("list count not eq 0")
 	}
 	if list.Capacity() != defaultElementsLength {
 		t.Fatal("list capacity not eq defaultElementsLength")
 	}
-	list.PushBack(1)
+	list.AddLast(1)
 	if list.Count() != 1 {
 		t.Fatal("list count not eq 1")
 	}
@@ -37,7 +37,7 @@ func TestArrayList(t *testing.T) {
 		t.Fatal("element of index 0 is not 2")
 	}
 	for i := 0; i < 10; i++ {
-		list.PushBack(i)
+		list.AddLast(i)
 	}
 	if list.Count() != 11 {
 		t.Fatal("list count not eq 11")
@@ -73,14 +73,14 @@ func TestArrayList(t *testing.T) {
 	if list.Capacity() != 30 {
 		t.Fatal("list capacity not grow to 30")
 	}
-	var listB = ArrayListFrom[int](ArrayListOf(1, 2, 3))
+	var listB = From[int](Of(1, 2, 3))
 	if listB.Count() != 3 {
 		t.Fatal("list count not eq 3")
 	}
 	if listB.Capacity() != 3 {
 		t.Fatal("list capacity not eq 3")
 	}
-	list.InsertAll(0, listB)
+	list.AddAll(0, listB)
 	if list.Count() != 3 {
 		t.Fatal("list count not eq 3")
 	}
@@ -93,16 +93,15 @@ func TestArrayList(t *testing.T) {
 			t.Fatal("element error")
 		}
 	}
-	list.InsertAll(0, ArrayListOf(1, 2, 3))
+	list.AddAll(0, Of(1, 2, 3))
 	if list.Count() != 6 {
 		t.Fatal("list count not eq 6")
 	}
-	list.RemoveRange(iter.RangeOf(1, 5))
+	list.RemoveRange(1, 5)
 	if list.Count() != 2 {
 		t.Fatal("list count not eq 2")
 	}
-	if !Equals[int](ArrayListOf(1, 3), list) {
+	if !seq.Equals[int](Of(1, 3), list) {
 		t.Fatal("list elements not expect")
 	}
-	var _ IdxList[int] = list
 }

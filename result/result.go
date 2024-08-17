@@ -1,4 +1,4 @@
-package util
+package result
 
 // Constructing an Result with a success value.
 func Ok[T any](a T) Result[T] {

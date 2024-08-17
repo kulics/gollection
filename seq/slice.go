@@ -1,6 +1,8 @@
-package iter
+package seq
 
-import "github.com/kulics/gollection/util"
+import (
+	"github.com/kulics/gollection/option"
+)
 
 // Collection is implemented via Slice, which is isomorphic to the built-in slice.
 type Slice[T any] []T
@@ -18,12 +20,12 @@ type sliceIterator[T any] struct {
 	source []T
 }
 
-func (a *sliceIterator[T]) Next() util.Opt[T] {
+func (a *sliceIterator[T]) Next() option.Option[T] {
 	if a.index < len(a.source)-1 {
 		a.index++
-		return util.Some(a.source[a.index])
+		return option.Some(a.source[a.index])
 	}
-	return util.None[T]()
+	return option.None[T]()
 }
 
 func CollectToSlice[T any](it Iterator[T]) []T {

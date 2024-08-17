@@ -1,88 +1,83 @@
 package list
 
 import (
-	"github.com/kulics/gollection/iter"
-	"github.com/kulics/gollection/util"
+	"github.com/kulics/gollection/option"
+	"github.com/kulics/gollection/ref"
+	"github.com/kulics/gollection/seq"
 )
 
-func LinkedListOf[T any](elements ...T) *LinkedList[T] {
-	var list = &LinkedList[T]{0, nil, nil}
+func Of[T any](elements ...T) *List[T] {
+	var list = &List[T]{0, nil, nil}
 	for _, v := range elements {
-		list.PushBack(v)
+		list.AddLast(v)
 	}
 	return list
 }
 
-func LinkedListFrom[T any](collection iter.Collection[T]) *LinkedList[T] {
-	var list = LinkedListOf[T]()
-	iter.ForEach(list.PushBack, collection.Iterator())
+func From[T any](collection seq.Collection[T]) *List[T] {
+	var list = Of[T]()
+	seq.ForEach[T](list.AddLast, collection)
 	return list
 }
 
-type LinkedList[T any] struct {
+type List[T any] struct {
 	length int
 	first  *LinkedListNode[T]
 	last   *LinkedListNode[T]
 }
 
+// Returns the element at the start.
+// Return None when the list is empty.
+func (a *List[T]) First() ref.Ref[T] {
+	if first := a.first; first != nil {
+		return ref.Of(&first.Value)
+	}
+	return ref.Of[T](nil)
+}
+
+// Add element at the start.
+func (a *List[T]) AddFirst(element T) {
+	a.linkFirst(element)
+}
+
+// Remove element at the start.
+// Return None when the list is empty.
+func (a *List[T]) RemoveFirst() option.Option[T] {
+	var first = a.first
+	if first == nil {
+		return option.None[T]()
+	}
+	return option.Some(a.unlinkFirst(first))
+}
+
 // Returns the element at the end.
 // Return None when the list is empty.
-func (a *LinkedList[T]) Peek() util.Ref[T] {
-	return a.PeekBack()
+func (a *List[T]) Last() ref.Ref[T] {
+	if last := a.last; last != nil {
+		return ref.Of(&last.Value)
+	}
+	return ref.Of[T](nil)
 }
 
 // Add element at the end.
-func (a *LinkedList[T]) Push(element T) {
-	a.PushBack(element)
+func (a *List[T]) AddLast(element T) {
+	a.linkLast(element)
 }
 
 // Remove element at the end.
 // Return None when the list is empty.
-func (a *LinkedList[T]) Pop() util.Opt[T] {
-	return a.PopBack()
-}
-
-func (a *LinkedList[T]) PeekFront() util.Ref[T] {
-	if first := a.first; first != nil {
-		return util.RefOf(&first.Value)
-	}
-	return util.RefOf[T](nil)
-}
-
-func (a *LinkedList[T]) PushFront(element T) {
-	a.linkFirst(element)
-}
-
-func (a *LinkedList[T]) PopFront() util.Opt[T] {
-	var first = a.first
-	if first == nil {
-		util.None[T]()
-	}
-	return util.Some(a.unlinkFirst(first))
-}
-
-func (a *LinkedList[T]) PeekBack() util.Ref[T] {
-	if last := a.last; last != nil {
-		return util.RefOf(&last.Value)
-	}
-	return util.RefOf[T](nil)
-}
-
-func (a *LinkedList[T]) PushBack(element T) {
-	a.linkLast(element)
-}
-
-func (a *LinkedList[T]) PopBack() util.Opt[T] {
+func (a *List[T]) RemoveLast() option.Option[T] {
 	var last = a.last
 	if last == nil {
-		util.None[T]()
+		return option.None[T]()
 	}
-	return util.Some(a.unlinkLast(last))
+	return option.Some(a.unlinkLast(last))
 }
 
-func (a *LinkedList[T]) insert(index int, element T) {
+// Add element at the index.
+func (a *List[T]) Add(index int, element T) {
 	if index < 0 || index > a.length {
-		panic(iter.OutOfBounds)
+		panic(seq.OutOfBounds)
 	}
 	if index == 0 {
 		a.linkLast(element)
@@ -91,9 +86,10 @@ func (a *LinkedList[T]) insert(index int, element T) {
 	}
 }
 
-func (a *LinkedList[T]) insertAll(index int, elements iter.Collection[T]) {
+// Add elements at the index.
+func (a *List[T]) AddAll(index int, elements seq.Collection[T]) {
 	if index < 0 || index > a.length {
-		panic(iter.OutOfBounds)
+		panic(seq.OutOfBounds)
 	}
 	var length = elements.Count()
 	if length == 0 {
@@ -129,17 +125,18 @@ func (a *LinkedList[T]) insertAll(index int, elements iter.Collection[T]) {
 	a.length += length
 }
 
-func (a *LinkedList[T]) removeAt(index int) T {
+// Remove element at the index.
+func (a *List[T]) RemoveAt(index int) T {
 	if a.isOutOfBounds(index) {
-		panic(iter.OutOfBounds)
+		panic(seq.OutOfBounds)
 	}
 	return a.unlink(a.at(index))
 }
 
-func (a *LinkedList[T]) removeRange(at iter.Range[int]) {
-	var begin, end = at.Get()
+// Remove elements between begin and end.
+func (a *List[T]) RemoveRange(begin, end int) {
 	if a.isOutOfBounds(begin) || a.isOutOfBounds(end) {
-		panic(iter.OutOfBounds)
+		panic(seq.OutOfBounds)
 	}
 	if end == begin {
 		return
@@ -156,7 +153,8 @@ func (a *LinkedList[T]) removeRange(at iter.Range[int]) {
 	a.length -= end - begin
 }
 
-func (a *LinkedList[T]) Clear() {
+// Clears all elements.
+func (a *List[T]) Clear() {
 	for x := a.first; x != nil; {
 		var next = x.next
 		var empty T
@@ -170,26 +168,29 @@ func (a *LinkedList[T]) Clear() {
 	a.length = 0
 }
 
-func (a *LinkedList[T]) Count() int {
+// Return the number of elements of list.
+func (a *List[T]) Count() int {
 	return a.length
 }
 
-func (a *LinkedList[T]) Iterator() iter.Iterator[T] {
+// Return the Iterator of list.
+func (a *List[T]) Iterator() seq.Iterator[T] {
 	return &linkedListIterator[T]{a.first}
 }
 
-func (a *LinkedList[T]) Clone() *LinkedList[T] {
-	return LinkedListFrom[T](a)
+// Return a new list that copies all elements.
+func (a *List[T]) Clone() *List[T] {
+	return From[T](a)
 }
 
-func (a *LinkedList[T]) isOutOfBounds(index int) bool {
+func (a *List[T]) isOutOfBounds(index int) bool {
 	if index < 0 || index >= a.length {
 		return true
 	}
 	return false
 }
 
-func (a *LinkedList[T]) at(index int) *LinkedListNode[T] {
+func (a *List[T]) at(index int) *LinkedListNode[T] {
 	if index < (a.length >> 1) {
 		var x = a.first
 		for i := 0; i < index; i++ {
@@ -205,7 +206,7 @@ func (a *LinkedList[T]) at(index int) *LinkedListNode[T] {
 	}
 }
 
-func (a *LinkedList[T]) linkFirst(element T) *LinkedListNode[T] {
+func (a *List[T]) linkFirst(element T) *LinkedListNode[T] {
 	var first = a.first
 	var newNode = &LinkedListNode[T]{Value: element, prev: nil, next: first}
 	a.first = newNode
@@ -218,7 +219,7 @@ func (a *LinkedList[T]) linkFirst(element T) *LinkedListNode[T] {
 	return newNode
 }
 
-func (a *LinkedList[T]) linkLast(element T) *LinkedListNode[T] {
+func (a *List[T]) linkLast(element T) *LinkedListNode[T] {
 	var last = a.last
 	var newNode = &LinkedListNode[T]{Value: element, next: nil, prev: last}
 	a.last = newNode
@@ -231,7 +232,7 @@ func (a *LinkedList[T]) linkLast(element T) *LinkedListNode[T] {
 	return newNode
 }
 
-func (a *LinkedList[T]) linkBefore(element T, succ *LinkedListNode[T]) *LinkedListNode[T] {
+func (a *List[T]) linkBefore(element T, succ *LinkedListNode[T]) *LinkedListNode[T] {
 	var pred = succ.prev
 	var newNode = &LinkedListNode[T]{Value: element, prev: pred, next: succ}
 	succ.prev = newNode
@@ -244,7 +245,7 @@ func (a *LinkedList[T]) linkBefore(element T, succ *LinkedListNode[T]) *LinkedLi
 	return newNode
 }
 
-func (a *LinkedList[T]) linkAfter(element T, pred *LinkedListNode[T]) *LinkedListNode[T] {
+func (a *List[T]) linkAfter(element T, pred *LinkedListNode[T]) *LinkedListNode[T] {
 	var succ = pred.next
 	var newNode = &LinkedListNode[T]{Value: element, prev: pred, next: succ}
 	pred.next = newNode
@@ -257,7 +258,7 @@ func (a *LinkedList[T]) linkAfter(element T, pred *LinkedListNode[T]) *LinkedLis
 	return newNode
 }
 
-func (a *LinkedList[T]) unlink(x *LinkedListNode[T]) T {
+func (a *List[T]) unlink(x *LinkedListNode[T]) T {
 	var element = x.Value
 	var next = x.next
 	var prev = x.prev
@@ -280,7 +281,7 @@ func (a *LinkedList[T]) unlink(x *LinkedListNode[T]) T {
 	return element
 }
 
-func (a *LinkedList[T]) unlinkFirst(x *LinkedListNode[T]) T {
+func (a *List[T]) unlinkFirst(x *LinkedListNode[T]) T {
 	var element = x.Value
 	var next = x.next
 	var empty T
@@ -296,7 +297,7 @@ func (a *LinkedList[T]) unlinkFirst(x *LinkedListNode[T]) T {
 	return element
 }
 
-func (a *LinkedList[T]) unlinkLast(x *LinkedListNode[T]) T {
+func (a *List[T]) unlinkLast(x *LinkedListNode[T]) T {
 	var element = x.Value
 	var prev = x.prev
 	var empty T
@@ -312,31 +313,31 @@ func (a *LinkedList[T]) unlinkLast(x *LinkedListNode[T]) T {
 	return element
 }
 
-func (a *LinkedList[T]) Front() *LinkedListNode[T] {
+func (a *List[T]) Front() *LinkedListNode[T] {
 	return a.first
 }
 
-func (a *LinkedList[T]) Back() *LinkedListNode[T] {
+func (a *List[T]) Back() *LinkedListNode[T] {
 	return a.last
 }
 
-func (a *LinkedList[T]) Remove(mark *LinkedListNode[T]) T {
+func (a *List[T]) Remove(mark *LinkedListNode[T]) T {
 	return a.unlink(mark)
 }
 
-func (a *LinkedList[T]) InsertAfter(mark *LinkedListNode[T], newElement T) *LinkedListNode[T] {
+func (a *List[T]) InsertAfter(mark *LinkedListNode[T], newElement T) *LinkedListNode[T] {
 	return a.linkAfter(newElement, mark)
 }
 
-func (a *LinkedList[T]) InsertBefore(mark *LinkedListNode[T], newElement T) *LinkedListNode[T] {
+func (a *List[T]) InsertBefore(mark *LinkedListNode[T], newElement T) *LinkedListNode[T] {
 	return a.linkBefore(newElement, mark)
 }
 
-func (a *LinkedList[T]) InsertBack(newElement T) *LinkedListNode[T] {
+func (a *List[T]) InsertBack(newElement T) *LinkedListNode[T] {
 	return a.linkFirst(newElement)
 }
 
-func (a *LinkedList[T]) InsertFront(newElement T) *LinkedListNode[T] {
+func (a *List[T]) InsertFront(newElement T) *LinkedListNode[T] {
 	return a.linkLast(newElement)
 }
 
@@ -358,29 +359,29 @@ type linkedListIterator[T any] struct {
 	current *LinkedListNode[T]
 }
 
-func (a *linkedListIterator[T]) Next() util.Opt[T] {
+func (a *linkedListIterator[T]) Next() option.Option[T] {
 	if a.current != nil {
 		var current = a.current.Value
 		a.current = a.current.next
-		return util.Some(current)
+		return option.Some(current)
 	}
-	return util.None[T]()
+	return option.None[T]()
 }
 
-func LinkedListCollector[T any]() iter.Collector[*LinkedList[T], T, *LinkedList[T]] {
+func LinkedListCollector[T any]() seq.Collector[*List[T], T, *List[T]] {
 	return linkedListCollector[T]{}
 }
 
 type linkedListCollector[T any] struct{}
 
-func (a linkedListCollector[T]) Builder() *LinkedList[T] {
-	return LinkedListOf[T]()
+func (a linkedListCollector[T]) Builder() *List[T] {
+	return Of[T]()
 }
 
-func (a linkedListCollector[T]) Append(supplier *LinkedList[T], element T) {
-	supplier.PushBack(element)
+func (a linkedListCollector[T]) Append(supplier *List[T], element T) {
+	supplier.AddLast(element)
 }
 
-func (a linkedListCollector[T]) Finish(supplier *LinkedList[T]) *LinkedList[T] {
+func (a linkedListCollector[T]) Finish(supplier *List[T]) *List[T] {
 	return supplier
 }
